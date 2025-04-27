@@ -180,7 +180,8 @@ if ! test -e tar.installed; then
 
     mkdir -p build
     cd build
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --disable-year2038  CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib -lintl"
+    cp -f ${TOPDIR}/caches/tar.cache .
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --disable-year2038  CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib -lintl" --cache-file=tar.cache
 
     make -j $MAKE_TASKS
 
@@ -218,8 +219,6 @@ if ! test -e bash.installed; then
     mkdir -p build
     cd build
     cp -f ${TOPDIR}/caches/bash.cache .
-#    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --disable-multibyte CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
-#    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --disable-multibyte CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=bash.cache
     ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --without-bash-malloc CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=bash.cache
 
     make -j $MAKE_TASKS
