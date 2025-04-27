@@ -1,0 +1,179 @@
+diff -Nur pkg-config-0.29.2/glib/glib/gthread-posix.c pkg-config-0.29.2-irix/glib/glib/gthread-posix.c
+--- pkg-config-0.29.2/glib/glib/gthread-posix.c	2016-04-11 21:39:26.000000000 +0000
++++ pkg-config-0.29.2-irix/glib/glib/gthread-posix.c	2025-04-26 09:53:48.671830552 +0000
+@@ -96,7 +96,7 @@
+   {
+     pthread_mutexattr_t attr;
+     pthread_mutexattr_init (&attr);
+-    pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_ADAPTIVE_NP);
++/*    pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_ADAPTIVE_NP); */
+     pattr = &attr;
+   }
+ #endif
+@@ -273,7 +273,7 @@
+ 
+   mutex = g_slice_new (pthread_mutex_t);
+   pthread_mutexattr_init (&attr);
+-  pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE);
++/*  pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE); */
+   pthread_mutex_init (mutex, &attr);
+   pthread_mutexattr_destroy (&attr);
+ 
+@@ -424,6 +424,7 @@
+ 
+ /* {{{1 GRWLock */
+ 
++/*
+ static pthread_rwlock_t *
+ g_rw_lock_impl_new (void)
+ {
+@@ -439,14 +440,18 @@
+ 
+   return rwlock;
+ }
++*/
+ 
++/*
+ static void
+ g_rw_lock_impl_free (pthread_rwlock_t *rwlock)
+ {
+   pthread_rwlock_destroy (rwlock);
+   free (rwlock);
+ }
++*/
+ 
++/*
+ static pthread_rwlock_t *
+ g_rw_lock_get_impl (GRWLock *lock)
+ {
+@@ -462,6 +467,7 @@
+ 
+   return impl;
+ }
++*/
+ 
+ /**
+  * g_rw_lock_init:
+@@ -494,12 +500,13 @@
+  *
+  * Since: 2.32
+  */
++/*
+ void
+ g_rw_lock_init (GRWLock *rw_lock)
+ {
+   rw_lock->p = g_rw_lock_impl_new ();
+ }
+-
++*/
+ /**
+  * g_rw_lock_clear:
+  * @rw_lock: an initialized #GRWLock
+@@ -514,12 +521,13 @@
+  *
+  * Sine: 2.32
+  */
++/*
+ void
+ g_rw_lock_clear (GRWLock *rw_lock)
+ {
+-  g_rw_lock_impl_free (rw_lock->p);
++//  g_rw_lock_impl_free (rw_lock->p);
+ }
+-
++*/
+ /**
+  * g_rw_lock_writer_lock:
+  * @rw_lock: a #GRWLock
+@@ -530,11 +538,13 @@
+  *
+  * Since: 2.32
+  */
++/*
+ void
+ g_rw_lock_writer_lock (GRWLock *rw_lock)
+ {
+   pthread_rwlock_wrlock (g_rw_lock_get_impl (rw_lock));
+ }
++*/
+ 
+ /**
+  * g_rw_lock_writer_trylock:
+@@ -548,6 +558,7 @@
+  *
+  * Since: 2.32
+  */
++/*
+ gboolean
+ g_rw_lock_writer_trylock (GRWLock *rw_lock)
+ {
+@@ -556,6 +567,7 @@
+ 
+   return TRUE;
+ }
++*/
+ 
+ /**
+  * g_rw_lock_writer_unlock:
+@@ -568,12 +580,13 @@
+  *
+  * Since: 2.32
+  */
++/*
+ void
+ g_rw_lock_writer_unlock (GRWLock *rw_lock)
+ {
+   pthread_rwlock_unlock (g_rw_lock_get_impl (rw_lock));
+ }
+-
++*/
+ /**
+  * g_rw_lock_reader_lock:
+  * @rw_lock: a #GRWLock
+@@ -587,12 +600,13 @@
+  *
+  * Since: 2.32
+  */
++/*
+ void
+ g_rw_lock_reader_lock (GRWLock *rw_lock)
+ {
+   pthread_rwlock_rdlock (g_rw_lock_get_impl (rw_lock));
+ }
+-
++*/
+ /**
+  * g_rw_lock_reader_trylock:
+  * @rw_lock: a #GRWLock
+@@ -605,6 +619,7 @@
+  *
+  * Since: 2.32
+  */
++/*
+ gboolean
+ g_rw_lock_reader_trylock (GRWLock *rw_lock)
+ {
+@@ -613,7 +628,7 @@
+ 
+   return TRUE;
+ }
+-
++*/
+ /**
+  * g_rw_lock_reader_unlock:
+  * @rw_lock: a #GRWLock
+@@ -625,12 +640,13 @@
+  *
+  * Since: 2.32
+  */
++/*
+ void
+ g_rw_lock_reader_unlock (GRWLock *rw_lock)
+ {
+   pthread_rwlock_unlock (g_rw_lock_get_impl (rw_lock));
+ }
+-
++*/
+ /* {{{1 GCond */
+ 
+ static pthread_cond_t *

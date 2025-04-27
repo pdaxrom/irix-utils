@@ -1,0 +1,28 @@
+diff -Nur tar-1.35/gnu/wmempcpy.c tar-1.35-irix/gnu/wmempcpy.c
+--- tar-1.35/gnu/wmempcpy.c	2023-04-18 07:41:40.000000000 +0000
++++ tar-1.35-irix/gnu/wmempcpy.c	2025-04-25 16:11:20.280249841 +0000
+@@ -19,6 +19,12 @@
+ /* Specification.  */
+ #include <wchar.h>
+ 
++wchar_t *
++wmemcpy (wchar_t *dest, const wchar_t *src, size_t n)
++{
++  return (wchar_t *) memcpy ((char *) dest, (char *) src, n * sizeof (wchar_t));
++}
++
+ /* Copy N wide characters of SRC to DEST.
+    Return pointer to wide characters after the last written wide character.  */
+ wchar_t *
+diff -Nur tar-1.35/src/incremen.c tar-1.35-irix/src/incremen.c
+--- tar-1.35/src/incremen.c	2023-07-10 13:43:02.000000000 +0000
++++ tar-1.35-irix/src/incremen.c	2025-04-25 16:14:40.561312704 +0000
+@@ -22,6 +22,8 @@
+ #include <quotearg.h>
+ #include "common.h"
+ 
++#define ftello ftell
++
+ /* Incremental dump specialities.  */
+ 
+ /* Which child files to save under a directory.  */

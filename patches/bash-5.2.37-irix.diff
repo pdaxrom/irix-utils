@@ -1,0 +1,160 @@
+diff -Nur bash-5.2.37/Makefile.in bash-5.2.37-irix/Makefile.in
+--- bash-5.2.37/Makefile.in	2022-07-26 20:24:54.000000000 +0000
++++ bash-5.2.37-irix/Makefile.in	2025-04-25 19:19:51.805512541 +0000
+@@ -846,7 +846,6 @@
+ 		infodir=$(infodir) htmldir=$(htmldir) DESTDIR=$(DESTDIR) $@ )
+ 	-( cd $(DEFDIR) ; $(MAKE) $(MFLAGS) DESTDIR=$(DESTDIR) $@ )
+ 	-( cd $(PO_DIR) ; $(MAKE) $(MFLAGS) DESTDIR=$(DESTDIR) $@ )
+-	-( cd $(LOADABLES_DIR) && $(MAKE) $(MFLAGS) DESTDIR=$(DESTDIR) $@ )
+ 
+ install-strip:
+ 	$(MAKE) $(MFLAGS) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' \
+diff -Nur bash-5.2.37/config-bot.h bash-5.2.37-irix/config-bot.h
+--- bash-5.2.37/config-bot.h	2021-11-05 13:11:04.000000000 +0000
++++ bash-5.2.37-irix/config-bot.h	2025-04-25 19:04:41.055619324 +0000
+@@ -205,3 +205,6 @@
+ 
+ /* If you don't want bash to provide a default mail file to check. */
+ /* #undef DEFAULT_MAIL_DIRECTORY */
++
++#include "snprintf.h"
++#include <math.h>
+diff -Nur bash-5.2.37/configure bash-5.2.37-irix/configure
+--- bash-5.2.37/configure	2024-09-23 21:23:59.000000000 +0000
++++ bash-5.2.37-irix/configure	2025-04-25 19:04:41.057619362 +0000
+@@ -18720,7 +18720,7 @@
+ 
+ 	fi
+ if test $bash_cv_type_socklen_t = no; then
+-  printf "%s\n" "#define socklen_t unsigned int" >>confdefs.h
++  printf "%s\n" "#define socklen_t uint32_t" >>confdefs.h
+ 
+ fi
+ 
+diff -Nur bash-5.2.37/examples/loadables/finfo.c bash-5.2.37-irix/examples/loadables/finfo.c
+--- bash-5.2.37/examples/loadables/finfo.c	2020-06-29 14:56:32.000000000 +0000
++++ bash-5.2.37-irix/examples/loadables/finfo.c	2025-04-25 19:09:10.150817504 +0000
+@@ -34,6 +34,7 @@
+ #ifdef MAJOR_IN_SYSMACROS
+ #  include <sys/sysmacros.h>
+ #endif
++#include <sys/mkdev.h>
+ #include "posixstat.h"
+ #include <stdio.h>
+ #include <pwd.h>
+diff -Nur bash-5.2.37/parse.y bash-5.2.37-irix/parse.y
+--- bash-5.2.37/parse.y	2024-09-23 21:24:01.000000000 +0000
++++ bash-5.2.37-irix/parse.y	2025-04-25 19:04:41.058619381 +0000
+@@ -2640,6 +2640,7 @@
+       parser_state |= PST_ENDALIAS;
+       /* We need to do this to make sure last_shell_getc_is_singlebyte returns
+ 	 true, since we are returning a single-byte space. */
++#if defined (HANDLE_MULTIBYTE)
+       if (shell_input_line_index == shell_input_line_len && last_shell_getc_is_singlebyte == 0)
+ 	{
+ #if 0
+@@ -2653,6 +2654,7 @@
+ 	  shell_input_line_property[shell_input_line_index - 1] = 1;
+ #endif
+ 	}
++#endif /* HANDLE_MULTIBYTE */
+       return ' ';	/* END_ALIAS */
+     }
+ #endif
+diff -Nur bash-5.2.37/snprintf.h bash-5.2.37-irix/snprintf.h
+--- bash-5.2.37/snprintf.h	1970-01-01 00:00:00.000000000 +0000
++++ bash-5.2.37-irix/snprintf.h	2025-04-25 19:04:41.058619381 +0000
+@@ -0,0 +1,74 @@
++// Copyright (C) 2019 Miroslaw Toton, mirtoto@gmail.com
++#ifndef SNPRINTF_H_
++#define SNPRINTF_H_
++
++
++#include <stdarg.h>
++#include <stddef.h>
++
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++
++/** @see snprintf() */
++int vsnprintf(char *string, size_t length, const char *format, va_list args) __attribute__((format(printf, 3, 0)));
++
++/**
++ * Implementation of snprintf() function which create @p string of maximum
++ * @p length - 1 according of instruction provided by @p format. 
++ * 
++ * # Supportted types
++ * 
++ *  Type    | Description
++ * -------- | ----------------------------------------
++ *  d / i   | signed decimal integer
++ *  u       | unsigned decimal integer
++ *  o       | unsigned octal integer
++ *  x       | unsigned hexadecimal integer
++ *  f / F   | decimal floating point
++ *  e / E   | scientific (exponential) floating point
++ *  g / G   | scientific or decimal floating point
++ *  c       | character
++ *  s       | string
++ *  p       | pointer
++ *  %       | percent character
++ * 
++ * # Supported lengths
++ * 
++ *  Length  | Description
++ * -------- | ----------------------------------------
++ *  hh      | signed / unsigned char
++ *  h       | signed / unsigned short
++ *  l       | signed / unsigned long
++ *  ll      | signed / unsigned long long
++ * 
++ * # Supported flags
++ * 
++ *   Flag   | Description
++ * -------- | ----------------------------------------
++ *  -       | justify left
++ *  +       | justify right or put a plus if number
++ *  #       | prefix 0x, 0X for hex and 0 for octal
++ *  *       | width and/or precision is specified as an int argument
++ *  0       | for number padding with zeros instead of spaces
++ *  (space) | leave a blank for number with no sign
++ * 
++ * @param string Output buffer.
++ * @param length Size of output buffer @p string.
++ * @param format Format of input parameters.
++ * @param ... Input parameters according of @p format.
++ * 
++ * @retval >=0 Amount of characters put in @p string.
++ * @retval  -1 Output buffer size is too small.
++ */
++int snprintf(char *string, size_t length, const char *format, ...) __attribute__((format(printf, 3, 4)));
++
++
++#ifdef __cplusplus
++}
++#endif
++
++
++#endif  // SNPRINTF_H_
+diff -Nur bash-5.2.37/y.tab.c bash-5.2.37-irix/y.tab.c
+--- bash-5.2.37/y.tab.c	2024-09-23 21:24:01.000000000 +0000
++++ bash-5.2.37-irix/y.tab.c	2025-04-25 19:04:41.058619381 +0000
+@@ -4955,6 +4955,7 @@
+       parser_state |= PST_ENDALIAS;
+       /* We need to do this to make sure last_shell_getc_is_singlebyte returns
+ 	 true, since we are returning a single-byte space. */
++#if defined (HANDLE_MULTIBYTE)
+       if (shell_input_line_index == shell_input_line_len && last_shell_getc_is_singlebyte == 0)
+ 	{
+ #if 0
+@@ -4968,6 +4969,7 @@
+ 	  shell_input_line_property[shell_input_line_index - 1] = 1;
+ #endif
+ 	}
++#endif /* HANDLE_MULTIBYTE */
+       return ' ';	/* END_ALIAS */
+     }
+ #endif
