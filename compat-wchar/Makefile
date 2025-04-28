@@ -10,7 +10,7 @@ RANLIB = $(CROSS)ranlib
 
 CFLAGS = -O2
 
-OBJS = compat_wchar.o
+OBJS = compat_wchar.o snprintf.o
 
 $(TARGET): $(OBJS)
 	$(CC) -shared -o $@ $^
@@ -22,7 +22,7 @@ clean:
 ifneq (,$(PREFIX))
 install: all
 	mkdir -p $(PREFIX)/include $(PREFIX)/lib
-	cp -f compat_wchar.h $(PREFIX)/include
+	cp -f compat_wchar.h compat_snprintf.h stdbool.h stdio.h $(PREFIX)/include
 	ln -sf compat_wchar.h $(PREFIX)/include/wchar.h
 	cp -f libcompat_wchar.a $(PREFIX)/lib/
 	cp -f $(TARGET) $(PREFIX)/lib/

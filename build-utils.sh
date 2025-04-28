@@ -131,11 +131,11 @@ if ! test -e lzop.installed; then
     download https://www.lzop.org/download/lzop-1.04.tar.gz
     tar xf lzop-1.04.tar.gz
     pushd lzop-1.04
-    patch -p1 < ${TOPDIR}/patches/lzop-1.04-irix.diff
+#    patch -p1 < ${TOPDIR}/patches/lzop-1.04-irix.diff
 
     mkdir -p build
     cd build
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
 
     make -j $MAKE_TASKS
 
@@ -429,4 +429,23 @@ if ! test -e mc.installed; then
 
     popd
     touch mc.installed
+fi
+
+if ! test -e make.installed; then
+    download https://ftp.gnu.org/gnu/make/make-4.4.1.tar.gz
+    tar xf make-4.4.1.tar.gz
+    pushd make-4.4.1
+    mkdir -p b
+    cd b
+#    cat ${TOPDIR}/caches/*.cache > make.cache
+
+    ac_cv_header_stdbool_h=yes \
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include -DNO_GET_LOAD_AVG" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=make.cache
+
+    make -j $MAKE_TASKS
+
+    make install
+
+    popd
+    touch make.installed
 fi
