@@ -205,13 +205,10 @@ size_t wcsnlen(const wchar_t *s, size_t n)
 }
 
 /* --- Copy n wide characters --- */
-void *wmemcpy(void *dest, const void *src, size_t n)
+wchar_t *wmemcpy(wchar_t *dest, const wchar_t *src, size_t n)
 {
-    wchar_t *d = (wchar_t *)dest;
-    const wchar_t *s = (const wchar_t *)src;
-
     for (size_t i = 0; i < n; i++) {
-        d[i] = s[i];
+        dest[i] = src[i];
     }
 
     return dest;

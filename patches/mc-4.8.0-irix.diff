@@ -1,6 +1,6 @@
 diff -Nur mc-4.8.0/lib/strutil/strutil8bit.c mc-4.8.0-irix/lib/strutil/strutil8bit.c
 --- mc-4.8.0/lib/strutil/strutil8bit.c	2011-10-18 11:39:19.000000000 +0000
-+++ mc-4.8.0-irix/lib/strutil/strutil8bit.c	2025-04-27 06:21:52.058984479 +0000
++++ mc-4.8.0-irix/lib/strutil/strutil8bit.c	2025-04-28 12:09:48.791390609 +0000
 @@ -34,6 +34,10 @@
  #include "lib/global.h"
  #include "lib/strutil.h"
@@ -14,19 +14,33 @@ diff -Nur mc-4.8.0/lib/strutil/strutil8bit.c mc-4.8.0-irix/lib/strutil/strutil8b
   * there are only small differences between functions in strutil8bit.c 
 diff -Nur mc-4.8.0/lib/tty/tty-ncurses.c mc-4.8.0-irix/lib/tty/tty-ncurses.c
 --- mc-4.8.0/lib/tty/tty-ncurses.c	2011-10-18 11:39:19.000000000 +0000
-+++ mc-4.8.0-irix/lib/tty/tty-ncurses.c	2025-04-27 05:22:47.038482171 +0000
-@@ -185,7 +185,7 @@
++++ mc-4.8.0-irix/lib/tty/tty-ncurses.c	2025-04-28 12:30:39.819855676 +0000
+@@ -181,11 +181,21 @@
+     ESCDELAY = 200;
+ #endif /* HAVE_ESCDELAY */
+ 
++    struct termios tty;
++    tcgetattr(STDIN_FILENO, &tty);  // Get current terminal settings
++
++    tty.c_cc[VINTR] = CTRL ('g');   /* ^g */
++    /* disable SIGQUIT to allow use Ctrl-\ key */
++    tty.c_cc[VQUIT] = NULL_VALUE;
++    tcsetattr (STDIN_FILENO, TCSANOW, &tty);
++
++#if 0
+     /* use Ctrl-g to generate SIGINT */
      cur_term->Nttyb.c_cc[VINTR] = CTRL ('g');   /* ^g */
      /* disable SIGQUIT to allow use Ctrl-\ key */
      cur_term->Nttyb.c_cc[VQUIT] = NULL_VALUE;
 -    tcsetattr (cur_term->Filedes, TCSANOW, &cur_term->Nttyb);
 +    tcsetattr (cur_term->Filedes, TCSANOW, (const struct termios *)&cur_term->Nttyb);
++#endif
  
      tty_start_interrupt_key ();
  
 diff -Nur mc-4.8.0/lib/util.c mc-4.8.0-irix/lib/util.c
 --- mc-4.8.0/lib/util.c	2011-10-18 11:39:19.000000000 +0000
-+++ mc-4.8.0-irix/lib/util.c	2025-04-27 06:22:25.704681129 +0000
++++ mc-4.8.0-irix/lib/util.c	2025-04-28 12:09:48.792390629 +0000
 @@ -56,6 +56,8 @@
  #include "lib/strutil.h"
  #include "lib/util.h"
@@ -38,7 +52,7 @@ diff -Nur mc-4.8.0/lib/util.c mc-4.8.0-irix/lib/util.c
  /*** file scope macro definitions ****************************************************************/
 diff -Nur mc-4.8.0/lib/vfs/direntry.c mc-4.8.0-irix/lib/vfs/direntry.c
 --- mc-4.8.0/lib/vfs/direntry.c	2011-10-19 11:30:59.000000000 +0000
-+++ mc-4.8.0-irix/lib/vfs/direntry.c	2025-04-27 05:24:21.565383930 +0000
++++ mc-4.8.0-irix/lib/vfs/direntry.c	2025-04-28 12:09:48.792390629 +0000
 @@ -77,6 +77,8 @@
  #include "xdirentry.h"
  #include "gc.h"                 /* vfs_rmstamp */
@@ -50,7 +64,7 @@ diff -Nur mc-4.8.0/lib/vfs/direntry.c mc-4.8.0-irix/lib/vfs/direntry.c
  /*** file scope macro definitions ****************************************************************/
 diff -Nur mc-4.8.0/lib/vfs/parse_ls_vga.c mc-4.8.0-irix/lib/vfs/parse_ls_vga.c
 --- mc-4.8.0/lib/vfs/parse_ls_vga.c	2011-10-18 11:39:19.000000000 +0000
-+++ mc-4.8.0-irix/lib/vfs/parse_ls_vga.c	2025-04-27 05:26:55.867488385 +0000
++++ mc-4.8.0-irix/lib/vfs/parse_ls_vga.c	2025-04-28 12:09:48.792390629 +0000
 @@ -40,6 +40,9 @@
  #include <stdio.h>
  #include <stdlib.h>
@@ -63,7 +77,7 @@ diff -Nur mc-4.8.0/lib/vfs/parse_ls_vga.c mc-4.8.0-irix/lib/vfs/parse_ls_vga.c
  
 diff -Nur mc-4.8.0/src/vfs/fish/fish.c mc-4.8.0-irix/src/vfs/fish/fish.c
 --- mc-4.8.0/src/vfs/fish/fish.c	2011-10-19 11:30:59.000000000 +0000
-+++ mc-4.8.0-irix/src/vfs/fish/fish.c	2025-04-27 06:23:10.250603389 +0000
++++ mc-4.8.0-irix/src/vfs/fish/fish.c	2025-04-28 12:09:48.792390629 +0000
 @@ -79,6 +79,8 @@
  #include "fish.h"
  #include "fishdef.h"
@@ -75,7 +89,7 @@ diff -Nur mc-4.8.0/src/vfs/fish/fish.c mc-4.8.0-irix/src/vfs/fish/fish.c
  int fish_directory_timeout = 900;
 diff -Nur mc-4.8.0/src/vfs/ftpfs/ftpfs.c mc-4.8.0-irix/src/vfs/ftpfs/ftpfs.c
 --- mc-4.8.0/src/vfs/ftpfs/ftpfs.c	2011-10-19 11:30:59.000000000 +0000
-+++ mc-4.8.0-irix/src/vfs/ftpfs/ftpfs.c	2025-04-27 06:27:46.165313859 +0000
++++ mc-4.8.0-irix/src/vfs/ftpfs/ftpfs.c	2025-04-28 12:09:48.793390650 +0000
 @@ -112,6 +112,8 @@
  
  #include "ftpfs.h"
@@ -137,7 +151,7 @@ diff -Nur mc-4.8.0/src/vfs/ftpfs/ftpfs.c mc-4.8.0-irix/src/vfs/ftpfs/ftpfs.c
          ERRNOR (EINVAL, -1);
 diff -Nur mc-4.8.0/src/vfs/ftpfs/irix_net_addons.c mc-4.8.0-irix/src/vfs/ftpfs/irix_net_addons.c
 --- mc-4.8.0/src/vfs/ftpfs/irix_net_addons.c	1970-01-01 00:00:00.000000000 +0000
-+++ mc-4.8.0-irix/src/vfs/ftpfs/irix_net_addons.c	2025-04-27 06:26:26.392663136 +0000
++++ mc-4.8.0-irix/src/vfs/ftpfs/irix_net_addons.c	2025-04-28 12:09:48.793390650 +0000
 @@ -0,0 +1,177 @@
 +// getaddrinfo_compat.c
 +#include <stdio.h>
@@ -318,7 +332,7 @@ diff -Nur mc-4.8.0/src/vfs/ftpfs/irix_net_addons.c mc-4.8.0-irix/src/vfs/ftpfs/i
 +}
 diff -Nur mc-4.8.0/src/viewer/display.c mc-4.8.0-irix/src/viewer/display.c
 --- mc-4.8.0/src/viewer/display.c	2011-10-18 11:39:19.000000000 +0000
-+++ mc-4.8.0-irix/src/viewer/display.c	2025-04-27 06:28:25.780133524 +0000
++++ mc-4.8.0-irix/src/viewer/display.c	2025-04-28 12:09:48.793390650 +0000
 @@ -55,6 +55,9 @@
  #include "internal.h"
  #include "mcviewer.h"
@@ -331,7 +345,7 @@ diff -Nur mc-4.8.0/src/viewer/display.c mc-4.8.0-irix/src/viewer/display.c
  /*** file scope macro definitions ****************************************************************/
 diff -Nur mc-4.8.0/src/viewer/hex.c mc-4.8.0-irix/src/viewer/hex.c
 --- mc-4.8.0/src/viewer/hex.c	2011-10-18 11:39:19.000000000 +0000
-+++ mc-4.8.0-irix/src/viewer/hex.c	2025-04-27 06:29:46.517803960 +0000
++++ mc-4.8.0-irix/src/viewer/hex.c	2025-04-28 12:09:48.793390650 +0000
 @@ -50,6 +50,8 @@
  
  #include "internal.h"

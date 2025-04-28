@@ -14,16 +14,18 @@ OBJS = compat_wchar.o
 
 $(TARGET): $(OBJS)
 	$(CC) -shared -o $@ $^
-#	$(AR) rcs $@ $(OBJS)
-#	$(RANLIB) $@
+	$(AR) rcs libcompat_wchar.a $^
 
 clean:
 	rm -f $(TARGET) $(OBJS)
 
 ifneq (,$(PREFIX))
 install: all
+	mkdir -p $(PREFIX)/include $(PREFIX)/lib
 	cp -f compat_wchar.h $(PREFIX)/include
-#	cp -f $(TARGET) $(PREFIX)/lib/
+	ln -sf compat_wchar.h $(PREFIX)/include/wchar.h
+	cp -f libcompat_wchar.a $(PREFIX)/lib/
 	cp -f $(TARGET) $(PREFIX)/lib/
 	ln -sf $(TARGET) $(PREFIX)/lib/$(LIBNAME)
+#	cp -f stdbool.h $(PREFIX)/include
 endif

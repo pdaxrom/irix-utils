@@ -17,9 +17,6 @@ export HOST_PREFIX=${PWD}/host
 mkdir -p $HOST_PREFIX
 export PATH=${HOST_PREFIX}/bin:$PATH
 
-mkdir -p ${INST_PREFIX}/include
-test -f ${INST_PREFIX}/include/compat_wchar.h || cp ${TOPDIR}/compat/compat_wchar.h ${INST_PREFIX}/include/
-
 error() {
     shift
     echo "ERROR: $@"
@@ -33,8 +30,8 @@ download() {
 if ! test -e compat_wchar.installed; then
     cp -R ${TOPDIR}/compat-wchar .
     pushd compat-wchar
-    make CROSS=mips-sgi-irix5- PREFIX=/opt/pdaxrom-ng clean
-    make CROSS=mips-sgi-irix5- PREFIX=/opt/pdaxrom-ng install
+    make CROSS=mips-sgi-irix5- PREFIX=${INST_PREFIX} clean
+    make CROSS=mips-sgi-irix5- PREFIX=${INST_PREFIX} install
 
     popd
     touch compat_wchar.installed
@@ -174,8 +171,9 @@ if ! test -e gettext.installed; then
     patch -p1 < ${TOPDIR}/patches/gettext-0.24-irix.diff
     mkdir -p build
     cd build
+#    cat ${TOPDIR}/caches/*.cache > gettext.cache
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --disable-threads CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --disable-threads CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=gettext.cache
 
     make -j $MAKE_TASKS
 
@@ -212,7 +210,17 @@ if ! test -e ncurses.installed; then
     mkdir -p build
     cd build
     cp -f ${TOPDIR}/caches/ncurses.cache .
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --disable-stripping  CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=ncurses.cache
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --with-shared --with-cxx-shared --disable-widec --disable-stripping  CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=ncurses.cache
+
+    make -j $MAKE_TASKS
+
+    make install
+
+    cd ..
+    mkdir -p build-multi
+    cd build-multi
+    cp -f ${TOPDIR}/caches/ncurses.cache .
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --with-shared --with-cxx-shared --disable-stripping  CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=ncurses.cache
 
     make -j $MAKE_TASKS
 
@@ -250,7 +258,7 @@ if ! test -e bash.installed; then
     mkdir -p build
     cd build
     cp -f ${TOPDIR}/caches/bash.cache .
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --without-bash-malloc --enable-multibyte CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=bash.cache
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --without-bash-malloc --enable-multibyte CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" LIBS="${INST_PREFIX}/lib/libcompat_wchar.a" --cache-file=bash.cache
 
     make -j $MAKE_TASKS
 
@@ -369,6 +377,7 @@ if ! test -e glib2.installed; then
     pushd glib-2.20.5
     mkdir -p b
     cd b
+#    cat ${TOPDIR}/caches/*.cache > glib2.cache
 
     glib_cv_stack_grows=no \
     glib_cv_uscore=no \
@@ -376,7 +385,7 @@ if ! test -e glib2.installed; then
     ac_cv_func_nonposix_getgrgid_r=no \
     ac_cv_func_posix_getpwuid_r=no \
     ac_cv_func_posix_getgrgid_r=no \
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=glib2.cache
 
     make -j $MAKE_TASKS
 
@@ -410,8 +419,9 @@ if ! test -e mc.installed; then
     patch -p1 < ${TOPDIR}/patches/mc-4.8.0-irix.diff
     mkdir -p b
     cd b
+    cat ${TOPDIR}/caches/*.cache > mc.cache
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --with-screen=ncurses --with-x CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --with-screen=ncurses --with-x --with-ncurses-includes=${INST_PREFIX}/include --with-ncurses-libs=${INST_PREFIX}/lib CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=mc.cache
 
     make -j $MAKE_TASKS
 

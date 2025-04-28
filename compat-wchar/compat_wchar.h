@@ -9,6 +9,10 @@
 #else /* fallback for old systems (like IRIX 5.3) */
 #include_next <wchar.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int mbsinit(const mbstate_t *ps);
 
 size_t wcrtomb(char *s, wchar_t wc, mbstate_t *ps);
@@ -19,7 +23,7 @@ size_t wcsrtombs(char *dst, const wchar_t **src, size_t len, mbstate_t *ps);
 int wctob(wchar_t wc);
 wchar_t btowc(int c);
 size_t wcsnlen(const wchar_t *s, size_t n);
-void *wmemcpy(void *dest, const void *src, size_t n);
+wchar_t *wmemcpy(wchar_t *dest, const wchar_t *src, size_t n);
 wchar_t *wmemchr(const wchar_t *s, wchar_t c, size_t n);
 
 size_t mbrlen(const char *s, size_t n, mbstate_t *ps);
@@ -37,6 +41,10 @@ wchar_t *wcsdup(const wchar_t *s);
 //int iswalpha(wchar_t wc);
 //int iswdigit(wchar_t wc);
 //int iswalnum(wchar_t wc);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* fallback */
 
