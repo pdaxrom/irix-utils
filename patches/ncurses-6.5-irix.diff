@@ -9,28 +9,3 @@ diff -Nur ncurses-6.5/include/curses.h.in ncurses-6.5-irix/include/curses.h.in
  #else
  #if @HAVE_STDNORETURN_H@
  #include <stdnoreturn.h>
-@@ -467,7 +468,11 @@
- #endif
- 
- #if @NEED_WCHAR_H@
--#include <wchar.h>		/* ...to get mbstate_t, etc. */
-+#if defined(__STDC_ISO_10646__) || defined(__GLIBC__) || defined(_WIN32)
-+#include <wchar.h>
-+#else
-+#include <compat_wchar.h>		/* ...to get mbstate_t, etc. */
-+#endif
- #endif
- 
- #if @NCURSES_WCHAR_T@
-diff -Nur ncurses-6.5/ncurses/widechar/lib_cchar.c ncurses-6.5-irix/ncurses/widechar/lib_cchar.c
---- ncurses-6.5/ncurses/widechar/lib_cchar.c	2022-07-27 08:03:16.000000000 +0000
-+++ ncurses-6.5-irix/ncurses/widechar/lib_cchar.c	2025-04-28 05:37:17.438513590 +0000
-@@ -35,7 +35,7 @@
- */
- 
- #include <curses.priv.h>
--#include <wchar.h>
-+#include <compat_wchar.h>
- 
- MODULE_ID("$Id: lib_cchar.c,v 1.38 2022/07/27 08:03:16 tom Exp $")
- 

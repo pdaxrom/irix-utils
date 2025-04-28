@@ -12,18 +12,6 @@ diff -Nur mc-4.8.0/lib/strutil/strutil8bit.c mc-4.8.0-irix/lib/strutil/strutil8b
  /* functions for singlebyte encodings, all characters have width 1
   * using standard system functions
   * there are only small differences between functions in strutil8bit.c 
-diff -Nur mc-4.8.0/lib/tty/color-ncurses.c mc-4.8.0-irix/lib/tty/color-ncurses.c
---- mc-4.8.0/lib/tty/color-ncurses.c	2011-10-18 11:39:19.000000000 +0000
-+++ mc-4.8.0-irix/lib/tty/color-ncurses.c	2025-04-26 19:13:19.188372034 +0000
-@@ -124,7 +124,7 @@
-     {
-         use_colors = TRUE;
-         start_color ();
--        use_default_colors ();
-+        //use_default_colors ();
-     }
- 
-     mc_tty_color_color_pair_attrs = g_hash_table_new_full
 diff -Nur mc-4.8.0/lib/tty/tty-ncurses.c mc-4.8.0-irix/lib/tty/tty-ncurses.c
 --- mc-4.8.0/lib/tty/tty-ncurses.c	2011-10-18 11:39:19.000000000 +0000
 +++ mc-4.8.0-irix/lib/tty/tty-ncurses.c	2025-04-27 05:22:47.038482171 +0000
@@ -36,15 +24,6 @@ diff -Nur mc-4.8.0/lib/tty/tty-ncurses.c mc-4.8.0-irix/lib/tty/tty-ncurses.c
  
      tty_start_interrupt_key ();
  
-@@ -481,6 +481,8 @@
-     addstr (str_term_form (s));
- }
- 
-+#define vw_printw vwprintw
-+
- /* --------------------------------------------------------------------------------------------- */
- 
- void
 diff -Nur mc-4.8.0/lib/util.c mc-4.8.0-irix/lib/util.c
 --- mc-4.8.0/lib/util.c	2011-10-18 11:39:19.000000000 +0000
 +++ mc-4.8.0-irix/lib/util.c	2025-04-27 06:22:25.704681129 +0000

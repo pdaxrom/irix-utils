@@ -1,6 +1,6 @@
 diff -Nur bash-5.2.37/Makefile.in bash-5.2.37-irix/Makefile.in
 --- bash-5.2.37/Makefile.in	2022-07-26 20:24:54.000000000 +0000
-+++ bash-5.2.37-irix/Makefile.in	2025-04-25 19:19:51.805512541 +0000
++++ bash-5.2.37-irix/Makefile.in	2025-04-28 08:21:15.801528989 +0000
 @@ -846,7 +846,6 @@
  		infodir=$(infodir) htmldir=$(htmldir) DESTDIR=$(DESTDIR) $@ )
  	-( cd $(DEFDIR) ; $(MAKE) $(MFLAGS) DESTDIR=$(DESTDIR) $@ )
@@ -11,7 +11,7 @@ diff -Nur bash-5.2.37/Makefile.in bash-5.2.37-irix/Makefile.in
  	$(MAKE) $(MFLAGS) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' \
 diff -Nur bash-5.2.37/config-bot.h bash-5.2.37-irix/config-bot.h
 --- bash-5.2.37/config-bot.h	2021-11-05 13:11:04.000000000 +0000
-+++ bash-5.2.37-irix/config-bot.h	2025-04-25 19:04:41.055619324 +0000
++++ bash-5.2.37-irix/config-bot.h	2025-04-28 08:21:15.801528989 +0000
 @@ -205,3 +205,6 @@
  
  /* If you don't want bash to provide a default mail file to check. */
@@ -21,7 +21,16 @@ diff -Nur bash-5.2.37/config-bot.h bash-5.2.37-irix/config-bot.h
 +#include <math.h>
 diff -Nur bash-5.2.37/configure bash-5.2.37-irix/configure
 --- bash-5.2.37/configure	2024-09-23 21:23:59.000000000 +0000
-+++ bash-5.2.37-irix/configure	2025-04-25 19:04:41.057619362 +0000
++++ bash-5.2.37-irix/configure	2025-04-28 10:04:21.502966164 +0000
+@@ -16289,7 +16289,7 @@
+ ac_fn_c_check_func "$LINENO" "mbscasecmp" "ac_cv_func_mbscasecmp"
+ if test "x$ac_cv_func_mbscasecmp" = xyes
+ then :
+-  printf "%s\n" "#define HAVE_MBSCMP 1" >>confdefs.h
++  printf "%s\n" "#define HAVE_MBSCASECMP 1" >>confdefs.h
+ 
+ fi
+ 
 @@ -18720,7 +18720,7 @@
  
  	fi
@@ -33,7 +42,7 @@ diff -Nur bash-5.2.37/configure bash-5.2.37-irix/configure
  
 diff -Nur bash-5.2.37/examples/loadables/finfo.c bash-5.2.37-irix/examples/loadables/finfo.c
 --- bash-5.2.37/examples/loadables/finfo.c	2020-06-29 14:56:32.000000000 +0000
-+++ bash-5.2.37-irix/examples/loadables/finfo.c	2025-04-25 19:09:10.150817504 +0000
++++ bash-5.2.37-irix/examples/loadables/finfo.c	2025-04-28 08:21:15.803529030 +0000
 @@ -34,6 +34,7 @@
  #ifdef MAJOR_IN_SYSMACROS
  #  include <sys/sysmacros.h>
@@ -44,7 +53,7 @@ diff -Nur bash-5.2.37/examples/loadables/finfo.c bash-5.2.37-irix/examples/loada
  #include <pwd.h>
 diff -Nur bash-5.2.37/parse.y bash-5.2.37-irix/parse.y
 --- bash-5.2.37/parse.y	2024-09-23 21:24:01.000000000 +0000
-+++ bash-5.2.37-irix/parse.y	2025-04-25 19:04:41.058619381 +0000
++++ bash-5.2.37-irix/parse.y	2025-04-28 08:21:15.804529050 +0000
 @@ -2640,6 +2640,7 @@
        parser_state |= PST_ENDALIAS;
        /* We need to do this to make sure last_shell_getc_is_singlebyte returns
@@ -63,7 +72,7 @@ diff -Nur bash-5.2.37/parse.y bash-5.2.37-irix/parse.y
  #endif
 diff -Nur bash-5.2.37/snprintf.h bash-5.2.37-irix/snprintf.h
 --- bash-5.2.37/snprintf.h	1970-01-01 00:00:00.000000000 +0000
-+++ bash-5.2.37-irix/snprintf.h	2025-04-25 19:04:41.058619381 +0000
++++ bash-5.2.37-irix/snprintf.h	2025-04-28 08:21:15.804529050 +0000
 @@ -0,0 +1,74 @@
 +// Copyright (C) 2019 Miroslaw Toton, mirtoto@gmail.com
 +#ifndef SNPRINTF_H_
@@ -141,7 +150,7 @@ diff -Nur bash-5.2.37/snprintf.h bash-5.2.37-irix/snprintf.h
 +#endif  // SNPRINTF_H_
 diff -Nur bash-5.2.37/y.tab.c bash-5.2.37-irix/y.tab.c
 --- bash-5.2.37/y.tab.c	2024-09-23 21:24:01.000000000 +0000
-+++ bash-5.2.37-irix/y.tab.c	2025-04-25 19:04:41.058619381 +0000
++++ bash-5.2.37-irix/y.tab.c	2025-04-28 08:21:15.805529070 +0000
 @@ -4955,6 +4955,7 @@
        parser_state |= PST_ENDALIAS;
        /* We need to do this to make sure last_shell_getc_is_singlebyte returns
