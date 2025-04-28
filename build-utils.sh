@@ -258,11 +258,11 @@ if ! test -e bash.installed; then
     mkdir -p build
     cd build
     cp -f ${TOPDIR}/caches/bash.cache .
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --without-bash-malloc --enable-multibyte CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" LIBS="${INST_PREFIX}/lib/libcompat_wchar.a" --cache-file=bash.cache
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --without-bash-malloc --with-curses --enable-multibyte CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include -I${INST_PREFIX}/include/ncurses" LDFLAGS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" LIBS="${INST_PREFIX}/lib/libcompat_wchar.a" --cache-file=bash.cache
 
-    make -j $MAKE_TASKS
+    make TERMCAP_LIB=${INST_PREFIX}/lib/libncurses.a -j $MAKE_TASKS
 
-    make install
+    make TERMCAP_LIB=${INST_PREFIX}/lib/libncurses.a install
 
     popd
     touch bash.installed
