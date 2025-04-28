@@ -17,6 +17,9 @@ export HOST_PREFIX=${PWD}/host
 mkdir -p $HOST_PREFIX
 export PATH=${HOST_PREFIX}/bin:$PATH
 
+mkdir p ${INST_PREFIX}/include
+test -f ${INST_PREFIX}/include/compat_wchar.h || cp ${TOPDIR}/compat/compat_wchar.h ${INST_PREFIX}/include/
+
 error() {
     shift
     echo "ERROR: $@"
@@ -191,14 +194,15 @@ if ! test -e tar.installed; then
     touch tar.installed
 fi
 
-if false; then
 if ! test -e ncurses.installed; then
     download https://ftp.gnu.org/gnu/ncurses/ncurses-6.5.tar.gz
     tar xf ncurses-6.5.tar.gz
     pushd ncurses-6.5
+    patch -p1 < ${TOPDIR}/patches/ncurses-6.5-irix.diff
     mkdir -p build
     cd build
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --disable-stripping --disable-widec CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lintl -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    cp -f ${TOPDIR}/caches/ncurses.cache .
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --disable-stripping  CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=ncurses.cache
 
     make -j $MAKE_TASKS
 
@@ -206,7 +210,6 @@ if ! test -e ncurses.installed; then
 
     popd
     touch ncurses.installed
-fi
 fi
 
 BASH_VERSION=5.2.37
