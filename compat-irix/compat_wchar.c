@@ -4,14 +4,11 @@
 #include <stddef.h>
 #include <errno.h>
 
-/* --- Check if system has good wchar_t support --- */
 #if defined(__STDC_ISO_10646__) || defined(__GLIBC__) || defined(_WIN32)
 
 #include <wchar.h>
 
-/* System has native functions: wcrtomb, mbrtowc, mbsrtowcs, wcsrtombs */
-
-#else /* fallback for old systems (like IRIX 5.3) */
+#else
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -19,14 +16,16 @@
 
 #include <wchar.h>
 
-/* --- Check if mbstate_t is "initial" --- */
 int mbsinit(const mbstate_t *ps)
 {
-    /* In our fallback, mbstate_t is always int 0 = initial */
     return (ps == NULL || *ps == 0);
 }
 
-/* --- UTF-8 Encoding: wchar_t ➔ multibyte char --- */
+void mbszero(mbstate_t *ps)
+{
+    mbsinit(ps);
+}
+
 size_t wcrtomb(char *s, wchar_t wc, mbstate_t *ps)
 {
     (void)ps;
@@ -59,7 +58,6 @@ size_t wcrtomb(char *s, wchar_t wc, mbstate_t *ps)
     }
 }
 
-/* --- UTF-8 Decoding: multibyte char ➔ wchar_t --- */
 size_t mbrtowc(wchar_t *pwc, const char *s, size_t n, mbstate_t *ps)
 {
     (void)ps;
@@ -101,7 +99,6 @@ ilseq:
     }
 }
 
-/* --- UTF-8 Decoding: multibyte string ➔ wide string --- */
 size_t mbsrtowcs(wchar_t *dst, const char **src, size_t len, mbstate_t *ps)
 {
     const char *s = *src;
@@ -132,7 +129,6 @@ size_t mbsrtowcs(wchar_t *dst, const char **src, size_t len, mbstate_t *ps)
     return count;
 }
 
-/* --- UTF-8 Encoding: wide string ➔ multibyte string --- */
 size_t wcsrtombs(char *dst, const wchar_t **src, size_t len, mbstate_t *ps)
 {
     const wchar_t *s = *src;
@@ -171,7 +167,6 @@ size_t wcsrtombs(char *dst, const wchar_t **src, size_t len, mbstate_t *ps)
     return count;
 }
 
-/* --- Single wide char � single byte --- */
 int wctob(wchar_t wc)
 {
     if ((unsigned int)wc <= 0xFF) {
@@ -181,7 +176,6 @@ int wctob(wchar_t wc)
     }
 }
 
-/* --- Single byte � single wide char --- */
 wchar_t btowc(int c)
 {
     if (c == EOF) {
@@ -192,7 +186,6 @@ wchar_t btowc(int c)
     return (wchar_t)uc;
 }
 
-/* --- Return the length of a wide string (up to n characters) --- */
 size_t wcsnlen(const wchar_t *s, size_t n)
 {
     size_t count = 0;
@@ -204,7 +197,6 @@ size_t wcsnlen(const wchar_t *s, size_t n)
     return count;
 }
 
-/* --- Copy n wide characters --- */
 wchar_t *wmemcpy(wchar_t *dest, const wchar_t *src, size_t n)
 {
     for (size_t i = 0; i < n; i++) {
@@ -214,7 +206,11 @@ wchar_t *wmemcpy(wchar_t *dest, const wchar_t *src, size_t n)
     return dest;
 }
 
-/* --- Find the first occurrence of a wide character in a wide-character array --- */
+wchar_t *wmempcpy(wchar_t *dest, const wchar_t *src, size_t n)
+{
+    return (wchar_t *)wmemcpy(dest, src, n) + n;
+}
+
 wchar_t *wmemchr(const wchar_t *s, wchar_t c, size_t n)
 {
     for (size_t i = 0; i < n; i++) {
@@ -225,7 +221,6 @@ wchar_t *wmemchr(const wchar_t *s, wchar_t c, size_t n)
     return NULL;
 }
 
-/* --- Return length of the next multi-byte character --- */
 size_t mbrlen(const char *s, size_t n, mbstate_t *ps)
 {
     if (s == NULL || n == 0) {
@@ -255,7 +250,6 @@ size_t mbrlen(const char *s, size_t n, mbstate_t *ps)
     return len;  // Return the length of valid multi-byte character
 }
 
-/* --- Compare two multibyte strings --- */
 int mbscmp(const char *s1, const char *s2)
 {
     mbstate_t state1 = {0}, state2 = {0};
@@ -281,7 +275,6 @@ int mbscmp(const char *s1, const char *s2)
     return 0;  // Both strings are equal
 }
 
-/* --- Compare two multibyte strings (case-insensitive) --- */
 int mbscasecmp(const char *s1, const char *s2)
 {
     mbstate_t state1 = {0}, state2 = {0};
@@ -310,7 +303,6 @@ int mbscasecmp(const char *s1, const char *s2)
     return 0;  // Both strings are equal
 }
 
-/* --- Convert up to n bytes of a multi-byte string to wide characters --- */
 size_t mbsnrtowcs(wchar_t *dst, const char **src, size_t n, size_t len, mbstate_t *ps)
 {
     size_t i = 0;
@@ -337,7 +329,6 @@ size_t mbsnrtowcs(wchar_t *dst, const char **src, size_t n, size_t len, mbstate_
     return i;  // Number of wide characters written
 }
 
-/* --- Search for the first occurrence of a multi-byte character --- */
 char *mbschr(const char *s, int c)
 {
     while (*s) {
@@ -349,7 +340,6 @@ char *mbschr(const char *s, int c)
     return NULL;  // Character not found
 }
 
-/* --- Duplicate a wide-character string --- */
 wchar_t *wcsdup(const wchar_t *s)
 {
     size_t len = wcsnlen(s, (size_t)-1);
@@ -363,7 +353,6 @@ wchar_t *wcsdup(const wchar_t *s)
 }
 
 #if 0
-/* --- Get the width (in columns) of a wide character --- */
 int wcwidth(wchar_t wc)
 {
     if (wc == L'\0') {
@@ -384,19 +373,16 @@ int wcwidth(wchar_t wc)
     return 1;
 }
 
-/* --- Check if a wide character is uppercase --- */
 int iswupper(wchar_t wc)
 {
     return (wc >= L'A' && wc <= L'Z');
 }
 
-/* --- Check if a wide character is lowercase --- */
 int iswlower(wchar_t wc)
 {
     return (wc >= L'a' && wc <= L'z');
 }
 
-/* --- Convert a wide character to uppercase --- */
 wchar_t towupper(wchar_t wc)
 {
     if (iswlower(wc)) {
@@ -405,7 +391,6 @@ wchar_t towupper(wchar_t wc)
     return wc;  // No change if already uppercase
 }
 
-/* --- Convert a wide character to lowercase --- */
 wchar_t towlower(wchar_t wc)
 {
     if (iswupper(wc)) {
@@ -414,19 +399,16 @@ wchar_t towlower(wchar_t wc)
     return wc;  // No change if already lowercase
 }
 
-/* --- Check if a wide character is alphabetic (a-z, A-Z) --- */
 int iswalpha(wchar_t wc)
 {
     return (wc >= L'A' && wc <= L'Z') || (wc >= L'a' && wc <= L'z');
 }
 
-/* --- Check if a wide character is a digit (0-9) --- */
 int iswdigit(wchar_t wc)
 {
     return (wc >= L'0' && wc <= L'9');
 }
 
-/* --- Check if a wide character is alphanumeric (letter or digit) --- */
 int iswalnum(wchar_t wc)
 {
     return (iswalpha(wc) || iswdigit(wc));  // Checks if it's a letter or a digit
@@ -435,7 +417,6 @@ int iswalnum(wchar_t wc)
 
 #if 0
 
-/* --- Count characters by decoding --- */
 size_t mbslen(const char *s)
 {
     size_t len = 0;
@@ -458,7 +439,6 @@ size_t mbslen(const char *s)
     return len;
 }
 
-/* --- Fast UTF-8 character count without decoding --- */
 size_t utf8_strlen(const char *s)
 {
     size_t count = 0;
@@ -476,7 +456,6 @@ size_t utf8_strlen(const char *s)
     return count;
 }
 
-/* --- Validate UTF-8 string --- */
 int utf8_validate(const char *s)
 {
     while (*s) {
@@ -508,6 +487,6 @@ int utf8_validate(const char *s)
 }
 #endif
 
-#endif /* fallback */
+#endif
 
-#endif /* COMPAT_UNICODE_H */
+#endif

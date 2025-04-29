@@ -531,3 +531,33 @@ if ! test -e gnutls.installed; then
     popd
     touch gnutls.installed
 fi
+
+if ! test -e wget.installed; then
+    download https://ftp.gnu.org/gnu/wget/wget-1.25.0.tar.gz
+    tar xf wget-1.25.0.tar.gz
+    pushd wget-1.25.0
+    patch -p1 < ${TOPDIR}/patches/wget-1.25.0-irix.diff
+    mkdir -p b
+    cd b
+    cat ${TOPDIR}/caches/*.cache > wget.cache
+
+#    cf_cv_wchar_t=yes \
+#    gl_cv_func_wcrtomb_retval=yes \
+#    gl_cv_func_wcrtomb_works=yes \
+#    gl_cv_func_wctype_works=yes \
+    ac_cv_header_stdbool_h=yes \
+    ac_cv_func_vsnprintf=yes \
+    gl_cv_func_vsnprintf_usable=yes \
+    ac_cv_have_decl_vsnprintf=yes \
+    ac_cv_func_snprintf=yes \
+    gl_cv_func_snprintf_usable=yes \
+    ac_cv_have_decl_snprintf=yes \
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --enable-threads=isoc --enable-cross-guesses=risky --disable-pcre2 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include -DGNULIB_MBRTOWC_SINGLE_THREAD=1 -D__need_mbstate_t=1" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=wget.cache
+
+    make -j $MAKE_TASKS
+
+    make install
+
+    popd
+    touch wget.installed
+fi

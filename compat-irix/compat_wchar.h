@@ -14,6 +14,7 @@ extern "C" {
 #endif
 
 int mbsinit(const mbstate_t *ps);
+void mbszero(mbstate_t *ps) __attribute__((weak));
 
 size_t wcrtomb(char *s, wchar_t wc, mbstate_t *ps);
 size_t mbrtowc(wchar_t *pwc, const char *s, size_t n, mbstate_t *ps);
@@ -24,6 +25,7 @@ int wctob(wchar_t wc);
 wchar_t btowc(int c);
 size_t wcsnlen(const wchar_t *s, size_t n);
 wchar_t *wmemcpy(wchar_t *dest, const wchar_t *src, size_t n);
+wchar_t *wmempcpy(wchar_t *dest, const wchar_t *src, size_t n);
 wchar_t *wmemchr(const wchar_t *s, wchar_t c, size_t n);
 
 size_t mbrlen(const char *s, size_t n, mbstate_t *ps);
