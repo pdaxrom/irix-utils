@@ -4,3 +4,4 @@ ac_cv_func_nonposix_getpwuid_r=no
 ac_cv_func_nonposix_getgrgid_r=no
 ac_cv_func_posix_getpwuid_r=no
 ac_cv_func_posix_getgrgid_r=no
+gl_cv_socket_ipv6=no

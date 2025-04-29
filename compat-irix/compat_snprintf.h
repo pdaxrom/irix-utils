@@ -2,15 +2,12 @@
 #ifndef SNPRINTF_H_
 #define SNPRINTF_H_
 
-
 #include <stdarg.h>
 #include <stddef.h>
-
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 /** @see snprintf() */
 int _compat_vsnprintf(char *string, size_t length, const char *format, va_list args) __attribute__((format(printf, 3, 0)));
@@ -65,10 +62,8 @@ int _compat_vsnprintf(char *string, size_t length, const char *format, va_list a
  */
 int _compat_snprintf(char *string, size_t length, const char *format, ...) __attribute__((format(printf, 3, 4)));
 
-
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif  // SNPRINTF_H_

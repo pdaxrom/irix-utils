@@ -147,3 +147,4 @@ cf_cv_wchar_t=${cf_cv_wchar_t=no}
 cf_cv_wcwidth_graphics=${cf_cv_wcwidth_graphics=yes}
 cf_cv_wint_t=${cf_cv_wint_t=yes}
 cf_cv_working_poll=${cf_cv_working_poll=yes}
+gl_cv_socket_ipv6=${gl_cv_socket_ipv6=no}

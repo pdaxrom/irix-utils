@@ -27,15 +27,18 @@ download() {
     test -f $(basename $1) || wget $1 || error "Download $1"
 }
 
-if ! test -e compat_wchar.installed; then
-    cp -R ${TOPDIR}/compat-wchar .
-    pushd compat-wchar
+if ! test -e compat_irix.installed; then
+    cp -R ${TOPDIR}/compat-irix .
+    pushd compat-irix
     make CROSS=mips-sgi-irix5- PREFIX=${INST_PREFIX} clean
     make CROSS=mips-sgi-irix5- PREFIX=${INST_PREFIX} install
 
     popd
-    touch compat_wchar.installed
+    touch compat_irix.installed
 fi
+
+COMPAT_IRIX_LIB="-lcompat_irix"
+COMPAT_IRIX_LIB_STATIC="${INST_PREFIX}/lib/libcompat_irix.a"
 
 if ! test -e zlib.installed; then
     download https://zlib.net/zlib-1.3.1.tar.gz
@@ -135,7 +138,7 @@ if ! test -e lzop.installed; then
 
     mkdir -p build
     cd build
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
 
     make -j $MAKE_TASKS
 
@@ -173,7 +176,7 @@ if ! test -e gettext.installed; then
     cd build
 #    cat ${TOPDIR}/caches/*.cache > gettext.cache
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --disable-threads CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=gettext.cache
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --disable-threads CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=gettext.cache
 
     make -j $MAKE_TASKS
 
@@ -210,7 +213,7 @@ if ! test -e ncurses.installed; then
     mkdir -p build
     cd build
     cp -f ${TOPDIR}/caches/ncurses.cache .
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --with-shared --with-cxx-shared --disable-widec --disable-stripping  CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=ncurses.cache
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --with-shared --with-cxx-shared --disable-widec --disable-stripping  CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=ncurses.cache
 
     make -j $MAKE_TASKS
 
@@ -220,7 +223,7 @@ if ! test -e ncurses.installed; then
     mkdir -p build-multi
     cd build-multi
     cp -f ${TOPDIR}/caches/ncurses.cache .
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --with-shared --with-cxx-shared --disable-stripping  CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=ncurses.cache
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --with-shared --with-cxx-shared --disable-stripping  CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=ncurses.cache
 
     make -j $MAKE_TASKS
 
@@ -238,7 +241,7 @@ if ! test -e readline.installed; then
     mkdir -p build
     cd build
     cp -f ${TOPDIR}/caches/bash.cache readline.cache
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --enable-multibyte CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=readline.cache
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --enable-multibyte CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=readline.cache
 
     make -j $MAKE_TASKS
 
@@ -258,7 +261,7 @@ if ! test -e bash.installed; then
     mkdir -p build
     cd build
     cp -f ${TOPDIR}/caches/bash.cache .
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --without-bash-malloc --with-curses --enable-multibyte CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include -I${INST_PREFIX}/include/ncurses" LDFLAGS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" LIBS="${INST_PREFIX}/lib/libcompat_wchar.a" --cache-file=bash.cache
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --without-bash-malloc --with-curses --enable-multibyte CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include -I${INST_PREFIX}/include/ncurses" LDFLAGS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" LIBS="${COMPAT_IRIX_LIB_STATIC}" --cache-file=bash.cache
 
     make TERMCAP_LIB=${INST_PREFIX}/lib/libncurses.a -j $MAKE_TASKS
 
@@ -282,7 +285,7 @@ if ! test -e pkg-config.installed; then
     ac_cv_func_nonposix_getgrgid_r=no \
     ac_cv_func_posix_getpwuid_r=no \
     ac_cv_func_posix_getgrgid_r=no \
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --with-internal-glib CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --with-internal-glib CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
 
     make -j $MAKE_TASKS
 
@@ -320,7 +323,7 @@ if ! test -e pcre2.installed; then
     mkdir build
     cd build
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
 
     make -j $MAKE_TASKS
 
@@ -340,7 +343,7 @@ if ! test -e pcre.installed; then
     mkdir build
     cd build
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
 
     make -j $MAKE_TASKS
 
@@ -385,7 +388,7 @@ if ! test -e glib2.installed; then
     ac_cv_func_nonposix_getgrgid_r=no \
     ac_cv_func_posix_getpwuid_r=no \
     ac_cv_func_posix_getgrgid_r=no \
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=glib2.cache
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=glib2.cache
 
     make -j $MAKE_TASKS
 
@@ -401,7 +404,7 @@ if ! test -e slang.installed; then
     tar xf slang-2.3.3.tar.bz2
     pushd slang-2.3.3
 
-    ./configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ./configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
 
     make -j $MAKE_TASKS
 
@@ -421,7 +424,7 @@ if ! test -e mc.installed; then
     cd b
     cat ${TOPDIR}/caches/*.cache > mc.cache
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --with-screen=ncurses --with-x --with-ncurses-includes=${INST_PREFIX}/include --with-ncurses-libs=${INST_PREFIX}/lib CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=mc.cache
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --with-screen=ncurses --with-x --with-ncurses-includes=${INST_PREFIX}/include --with-ncurses-libs=${INST_PREFIX}/lib CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=mc.cache
 
     make -j $MAKE_TASKS
 
@@ -440,7 +443,7 @@ if ! test -e make.installed; then
 #    cat ${TOPDIR}/caches/*.cache > make.cache
 
     ac_cv_header_stdbool_h=yes \
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include -DNO_GET_LOAD_AVG" LDFLAGS="-lcompat_wchar -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=make.cache
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include -DNO_GET_LOAD_AVG" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=make.cache
 
     make -j $MAKE_TASKS
 
@@ -448,4 +451,83 @@ if ! test -e make.installed; then
 
     popd
     touch make.installed
+fi
+
+if false; then
+if ! test -e libressl.installed; then
+    download https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-4.0.0.tar.gz
+    tar xf libressl-4.0.0.tar.gz
+    pushd libressl-4.0.0
+    mkdir -p b
+    cd b
+    cat ${TOPDIR}/caches/*.cache > libressl.cache
+
+    ac_cv_header_stdbool_h=yes \
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --disable-tests CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=libressl.cache
+
+    make -j $MAKE_TASKS
+
+    make install
+
+    popd
+    touch libressl.installed
+fi
+fi
+
+if ! test -e gmp.installed; then
+    download https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz
+    tar xf gmp-6.3.0.tar.xz
+    pushd gmp-6.3.0
+    mkdir -p b
+    cd b
+    cat ${TOPDIR}/caches/*.cache > gmp.cache
+
+    ac_cv_header_stdbool_h=yes \
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=gmp.cache
+
+    make -j $MAKE_TASKS
+
+    make install
+
+    popd
+    touch gmp.installed
+fi
+
+if ! test -e nettle.installed; then
+    download https://ftp.gnu.org/gnu/nettle/nettle-3.10.1.tar.gz
+    tar xf nettle-3.10.1.tar.gz
+    pushd nettle-3.10.1
+    mkdir -p b
+    cd b
+    cat ${TOPDIR}/caches/*.cache > nettle.cache
+
+    ac_cv_header_stdbool_h=yes \
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=nettle.cache
+
+    make getopt_TARGETS= getopt_OBJS= GETOPT_OBJS= -j $MAKE_TASKS
+
+    make getopt_TARGETS= getopt_OBJS= GETOPT_OBJS= install
+
+    popd
+    touch nettle.installed
+fi
+
+if ! test -e gnutls.installed; then
+    download https://www.gnupg.org/ftp/gcrypt/gnutls/v3.7/gnutls-3.7.11.tar.xz
+    tar xf gnutls-3.7.11.tar.xz
+    pushd gnutls-3.7.11
+    patch -p1 < ${TOPDIR}/patches/gnutls-3.7.11-irix.diff
+    mkdir -p b
+    cd b
+    cat ${TOPDIR}/caches/*.cache > gnutls.cache
+
+    ac_cv_header_stdbool_h=yes \
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --with-included-libtasn1 --with-included-unistring --without-p11-kit --enable-threads=isoc CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=gnutls.cache
+
+    make -j $MAKE_TASKS
+
+    make install
+
+    popd
+    touch gnutls.installed
 fi
