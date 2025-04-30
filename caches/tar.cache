@@ -96,4 +96,3 @@ gl_cv_type_wint_t_suffix=${gl_cv_type_wint_t_suffix=l}
 gt_cv_func_gnugettext3_libintl=${gt_cv_func_gnugettext3_libintl=no}
 gt_cv_locale_fr=${gt_cv_locale_fr=fr}
 tar_cv_path_RSH=${tar_cv_path_RSH=/usr/bsd/rsh}
-gl_cv_socket_ipv6=${gl_cv_socket_ipv6=no}

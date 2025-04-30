@@ -160,4 +160,3 @@ bash_cv_wcontinued_broken=${bash_cv_wcontinued_broken=no}
 bash_cv_wexitstatus_offset=${bash_cv_wexitstatus_offset=8}
 ac_cv_func_fnmatch=${ac_cv_func_fnmatch=yes}
 ac_cv_func_gettimeofday=${ac_cv_func_gettimeofday=yes}
-gl_cv_socket_ipv6=${gl_cv_socket_ipv6=no}

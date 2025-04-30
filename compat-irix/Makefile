@@ -12,7 +12,7 @@ RANLIB = $(CROSS)ranlib
 
 CFLAGS = -O2
 
-OBJS = compat_wchar.o snprintf.o getopt_long.o inet.o
+OBJS = compat_wchar.o snprintf.o getopt_long.o inet.o strto.o
 
 $(TARGET): $(OBJS)
 	$(CC) -shared -o $@ $^
@@ -24,7 +24,9 @@ clean:
 ifneq (,$(PREFIX))
 install: all
 	mkdir -p $(PREFIX)/include/arpa $(PREFIX)/lib
-	cp -f compat_wchar.h compat_snprintf.h getopt_long.h getopt.h stdbool.h stdio.h $(PREFIX)/include
+	cp -f compat_wchar.h compat_snprintf.h getopt_long.h getopt.h stdbool.h \
+	    stdio.h complex.h $(PREFIX)/include
+	cp  compat_strto.h stdlib.h $(PREFIX)/include
 	cp -f inet.h $(PREFIX)/include/arpa
 	ln -sf compat_wchar.h $(PREFIX)/include/wchar.h
 	cp -f $(LIBNAME)$(STATIC_SUFFIX) $(PREFIX)/lib/

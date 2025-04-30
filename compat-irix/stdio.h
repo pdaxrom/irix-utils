@@ -7,4 +7,6 @@
 #define vsnprintf _compat_vsnprintf
 #define snprintf _compat_snprintf
 
+int isblank(int c);
+
 #endif

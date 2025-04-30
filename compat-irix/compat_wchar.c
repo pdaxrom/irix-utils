@@ -16,6 +16,11 @@
 
 #include <wchar.h>
 
+int isblank(int c)
+{
+    return c == ' ' || c == '\t';
+}
+
 int mbsinit(const mbstate_t *ps)
 {
     return (ps == NULL || *ps == 0);

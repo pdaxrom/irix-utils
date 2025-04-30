@@ -34,6 +34,7 @@ ac_cv_func_setvbuf=${ac_cv_func_setvbuf=yes}
 ac_cv_func_setvbuf_reversed=${ac_cv_func_setvbuf_reversed=no}
 ac_cv_func_sigaction=${ac_cv_func_sigaction=yes}
 ac_cv_func_sigvec=${ac_cv_func_sigvec=yes}
+ac_cv_func_snprintf=${ac_cv_func_snprintf=no}
 ac_cv_func_strdup=${ac_cv_func_strdup=yes}
 ac_cv_func_strstr=${ac_cv_func_strstr=yes}
 ac_cv_func_symlink=${ac_cv_func_symlink=yes}
@@ -44,6 +45,7 @@ ac_cv_func_tsearch=${ac_cv_func_tsearch=yes}
 ac_cv_func_unlink=${ac_cv_func_unlink=yes}
 ac_cv_func_vfork=${ac_cv_func_vfork=no}
 ac_cv_func_vfork_works=${ac_cv_func_vfork_works=no}
+ac_cv_func_vsnprintf=${ac_cv_func_vsnprintf=no}
 ac_cv_func_wcsrtombs=${ac_cv_func_wcsrtombs=no}
 ac_cv_func_wcstombs=${ac_cv_func_wcstombs=yes}
 ac_cv_func_wctob=${ac_cv_func_wctob=yes}
@@ -145,4 +147,3 @@ cf_cv_wchar_t=${cf_cv_wchar_t=no}
 cf_cv_wcwidth_graphics=${cf_cv_wcwidth_graphics=yes}
 cf_cv_wint_t=${cf_cv_wint_t=yes}
 cf_cv_working_poll=${cf_cv_working_poll=yes}
-gl_cv_socket_ipv6=${gl_cv_socket_ipv6=no}
