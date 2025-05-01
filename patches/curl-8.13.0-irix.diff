@@ -1,0 +1,14 @@
+diff -Nur curl-8.13.0/configure.ac curl-8.13.0-irix/configure.ac
+--- curl-8.13.0/configure.ac	2025-04-02 05:47:41.000000000 +0000
++++ curl-8.13.0-irix/configure.ac	2025-04-30 14:42:45.570602678 +0000
+@@ -4261,6 +4261,10 @@
+             dnl No -pthread option, but link with -lpthread
+             PTHREAD=" -lpthread"
+             ;;
++          *-irix*)
++            dnl No -pthread option, but link with -lpthread
++            PTHREAD=" -lpthread"
++            ;;
+           *)
+             CFLAGS="$CFLAGS -pthread"
+             ;;

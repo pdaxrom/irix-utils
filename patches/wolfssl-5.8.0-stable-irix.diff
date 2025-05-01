@@ -1,0 +1,46 @@
+--- wolfssl-5.8.0-stable/wolfssl/wolfio.h	2025-04-24 22:10:41.000000000 +0000
++++ wolfssl-5.8.0-stable-irix/wolfssl/wolfio.h	2025-04-30 13:34:16.464655378 +0000
+@@ -226,6 +226,15 @@
+     #include <sys/filio.h>
+ #endif
+ 
++#ifdef WOLFSSL_IRIX
++typedef unsigned short sa_family_t;
++
++struct sockaddr_storage {
++    sa_family_t ss_family;   /* address family */
++    char _ss_pad[128 - sizeof(sa_family_t)]; /* padding to match modern size */
++};
++#endif
++
+ #define SOCKET_RECEIVING 1
+ #define SOCKET_SENDING 2
+ 
+--- wolfssl-5.8.0-stable/wolfcrypt/src/random.c	2025-04-24 22:10:41.000000000 +0000
++++ wolfssl-5.8.0-stable-irix/wolfcrypt/src/random.c	2025-05-01 05:33:06.940762102 +0000
+@@ -3558,6 +3558,25 @@
+         return 0;
+     }
+ 
++#elif defined(WOLFSSL_IRIX)
++
++    #include <time.h>
++    #include <stdlib.h>
++    int wc_GenerateSeed(OS_Seed* os, byte* output, word32 sz)
++    {
++        int i;
++        srand(clock());
++
++        for (i = 0; i < sz; i++ ) {
++            output[i] = rand() % 256;
++            if ((i % 8) == 7) {
++                srand(clock());
++            }
++        }
++
++        return 0;
++    }
++
+ #elif defined(ARDUINO)
+ 
+     int wc_GenerateSeed(OS_Seed* os, byte* output, word32 sz)

@@ -452,3 +452,44 @@ if ! test -e make.installed; then
     popd
     touch make.installed
 fi
+
+if ! test -e wolfssl.installed; then
+    download https://github.com/wolfSSL/wolfssl/archive/refs/tags/v5.8.0-stable.tar.gz
+    tar xf v5.8.0-stable.tar.gz
+    pushd wolfssl-5.8.0-stable
+    patch -p1 < ${TOPDIR}/patches/wolfssl-5.8.0-stable-irix.diff
+    ./autogen.sh
+    mkdir -p b
+    cd b
+
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --enable-opensslall --enable-opensslextra CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include -DWOLFSSL_IRIX" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+
+    make -j $MAKE_TASKS
+
+    make install
+
+    popd
+    touch wolfssl.installed
+fi
+
+if ! test -e curl.installed; then
+    download https://curl.se/download/curl-8.13.0.tar.xz
+    tar xf curl-8.13.0.tar.xz
+    pushd curl-8.13.0
+    patch -p1 < ${TOPDIR}/patches/curl-8.13.0-irix.diff
+    autoreconf --force -i
+    mkdir -p b
+    cd b
+
+    mkdir -p ${INST_PREFIX}/etc
+    test -e ${INST_PREFIX}/etc/cacert.pem || wget https://curl.se/ca/cacert.pem -O ${INST_PREFIX}/etc/cacert.pem
+
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --with-wolfssl --without-libpsl --with-ca-embed=${INST_PREFIX}/etc/cacert.pem CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" LIBS="${COMPAT_IRIX_LIB} -lpthread"
+
+    make -j $MAKE_TASKS
+
+    make install
+
+    popd
+    touch curl.installed
+fi
