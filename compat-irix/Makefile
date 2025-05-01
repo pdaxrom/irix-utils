@@ -10,12 +10,12 @@ CC = $(CROSS)gcc
 AR = $(CROSS)ar
 RANLIB = $(CROSS)ranlib
 
-CFLAGS = -O2
+CFLAGS = -O2 -DSTANDALONE
 
 OBJS = compat_wchar.o snprintf.o getopt_long.o inet.o strto.o
 
 $(TARGET): $(OBJS)
-	$(CC) -shared -o $@ $^
+	$(CC) -shared -o $@ $^ -lm
 	$(AR) rcs $(LIBNAME)$(STATIC_SUFFIX) $^
 
 clean:
