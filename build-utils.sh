@@ -53,6 +53,22 @@ if ! test -e zlib.installed; then
     touch zlib.installed
 fi
 
+if ! test -e gzip.installed; then
+    download https://ftp.gnu.org/gnu/gzip/gzip-1.14.tar.xz
+    tar xf gzip-1.14.tar.xz
+    pushd gzip-1.14
+    mkdir build
+    cd build
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17"
+
+    make -j $MAKE_TASKS
+
+    make install
+
+    popd
+    touch gzip.installed
+fi
+
 if ! test -e bzip2.installed; then
     download https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz
     tar xf bzip2-1.0.8.tar.gz || error "unpack bzip2"
@@ -461,8 +477,9 @@ if ! test -e wolfssl.installed; then
     ./autogen.sh
     mkdir -p b
     cd b
+    cp -f ${TOPDIR}/caches-single/wolf.cache .
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --enable-opensslall --enable-opensslextra CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include -DWOLFSSL_IRIX" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --enable-opensslall --enable-opensslextra CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include -DWOLFSSL_IRIX -DNO_INT128" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=wolf.cache
 
     make -j $MAKE_TASKS
 
