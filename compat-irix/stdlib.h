@@ -5,4 +5,8 @@
 
 #include "compat_strto.h"
 
+int compat_setenv(const char *name, const char *value, int overwrite);
+
+#define setenv compat_setenv
+
 #endif

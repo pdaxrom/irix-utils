@@ -1,0 +1,28 @@
+--- wolfssl-5.8.0-stable/wolfcrypt/src/random.c	2025-04-24 22:10:41.000000000 +0000
++++ wolfssl-5.8.0-stable-irix/wolfcrypt/src/random.c	2025-05-01 05:33:06.940762102 +0000
+@@ -3558,6 +3558,25 @@
+         return 0;
+     }
+ 
++#elif defined(WOLFSSL_IRIX)
++
++    #include <time.h>
++    #include <stdlib.h>
++    int wc_GenerateSeed(OS_Seed* os, byte* output, word32 sz)
++    {
++        int i;
++        srand(clock());
++
++        for (i = 0; i < sz; i++ ) {
++            output[i] = rand() % 256;
++            if ((i % 8) == 7) {
++                srand(clock());
++            }
++        }
++
++        return 0;
++    }
++
+ #elif defined(ARDUINO)
+ 
+     int wc_GenerateSeed(OS_Seed* os, byte* output, word32 sz)

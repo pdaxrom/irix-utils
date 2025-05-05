@@ -1,0 +1,12 @@
+diff -Nur pixman-0.26.2/test/utils.c pixman-0.26.2-irix/test/utils.c
+--- pixman-0.26.2/test/utils.c	2012-06-29 18:25:17.000000000 +0000
++++ pixman-0.26.2-irix/test/utils.c	2025-05-04 15:11:49.149658201 +0000
+@@ -241,7 +241,7 @@
+     int n_bytes;
+ } info_t;
+ 
+-#if defined(HAVE_MPROTECT) && defined(HAVE_GETPAGESIZE) && defined(HAVE_SYS_MMAN_H) && defined(HAVE_MMAP)
++#if defined(HAVE_MPROTECT) && defined(HAVE_GETPAGESIZE) && defined(HAVE_SYS_MMAN_H) && defined(HAVE_MMAP) && !defined(sgi)
+ 
+ /* This is apparently necessary on at least OS X */
+ #ifndef MAP_ANONYMOUS

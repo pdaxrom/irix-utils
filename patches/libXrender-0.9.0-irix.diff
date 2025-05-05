@@ -1,0 +1,26 @@
+diff -Nur libXrender-0.8.4/Xrender.c libXrender-0.8.4-irix/Xrender.c
+--- libXrender-0.8.4/Xrender.c	2003-06-23 21:12:08.000000000 +0000
++++ libXrender-0.8.4-irix/Xrender.c	2025-05-05 04:29:57.841055393 +0000
+@@ -25,6 +25,13 @@
+ 
+ #include "Xrenderint.h"
+ 
++#ifdef sgi
++#undef _XLockMutex
++#undef _XUnlockMutex
++#define _XLockMutex(lock)
++#define _XUnlockMutex(lock)
++#endif
++
+ XRenderExtInfo XRenderExtensionInfo;
+ char XRenderExtensionName[] = RENDER_NAME;
+ 
+@@ -387,6 +394,8 @@
+     return True;
+ }
+ 
++extern void _XDeqAsyncHandler(Display *dpy, _XAsyncHandler *handler);
++
+ Status
+ XRenderQueryFormats (Display *dpy)
+ {

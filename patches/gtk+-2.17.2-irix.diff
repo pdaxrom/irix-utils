@@ -1,0 +1,81 @@
+diff -Nur gtk+-2.17.2/gdk/x11/gdkasync.c gtk+-2.17.2-irix/gdk/x11/gdkasync.c
+--- gtk+-2.17.2/gdk/x11/gdkasync.c	2009-06-04 19:18:03.000000000 +0000
++++ gtk+-2.17.2-irix/gdk/x11/gdkasync.c	2025-05-05 05:25:00.864890936 +0000
+@@ -112,6 +112,8 @@
+   gulong get_input_focus_req;
+ };
+ 
++extern void _XDeqAsyncHandler(Display *dpy, _XAsyncHandler *handler);
++
+ static gboolean
+ callback_idle (gpointer data)
+ {
+diff -Nur gtk+-2.17.2/gdk-pixbuf/io-png.c gtk+-2.17.2-irix/gdk-pixbuf/io-png.c
+--- gtk+-2.17.2/gdk-pixbuf/io-png.c	2009-06-04 19:18:03.000000000 +0000
++++ gtk+-2.17.2-irix/gdk-pixbuf/io-png.c	2025-05-05 05:25:00.865890990 +0000
+@@ -184,7 +184,7 @@
+                              error_msg);
+         }
+ 
+-        longjmp (png_save_ptr->jmpbuf, 1);
++        longjmp (png_jmpbuf(png_save_ptr), 1);
+ }
+ 
+ static void
+@@ -282,7 +282,7 @@
+ 		return NULL;
+ 	}
+ 
+-	if (setjmp (png_ptr->jmpbuf)) {
++	if (setjmp (png_jmpbuf(png_ptr))) {
+ 	    	g_free (rows);
+ 
+ 		if (pixbuf)
+@@ -442,7 +442,7 @@
+                 return NULL;
+         }
+         
+-	if (setjmp (lc->png_read_ptr->jmpbuf)) {
++	if (setjmp (png_jmpbuf(lc->png_read_ptr))) {
+ 		if (lc->png_info_ptr)
+ 			png_destroy_read_struct(&lc->png_read_ptr, NULL, NULL);
+                 g_free(lc);
+@@ -514,7 +514,7 @@
+         lc->error = error;
+         
+         /* Invokes our callbacks as needed */
+-	if (setjmp (lc->png_read_ptr->jmpbuf)) {
++	if (setjmp (png_jmpbuf(lc->png_read_ptr))) {
+                 lc->error = NULL;
+ 		return FALSE;
+ 	} else {
+@@ -734,7 +734,7 @@
+                              error_msg);
+         }
+ 
+-        longjmp (png_read_ptr->jmpbuf, 1);
++        longjmp (png_jmpbuf(png_read_ptr), 1);
+ }
+ 
+ static void
+@@ -924,7 +924,7 @@
+ 	       success = FALSE;
+ 	       goto cleanup;
+        }
+-       if (setjmp (png_ptr->jmpbuf)) {
++       if (setjmp (png_jmpbuf(png_ptr))) {
+ 	       success = FALSE;
+ 	       goto cleanup;
+        }
+diff -Nur gtk+-2.17.2/gtk/gtksearchenginesimple.c gtk+-2.17.2-irix/gtk/gtksearchenginesimple.c
+--- gtk+-2.17.2/gtk/gtksearchenginesimple.c	2009-06-04 19:18:04.000000000 +0000
++++ gtk+-2.17.2-irix/gtk/gtksearchenginesimple.c	2025-05-05 05:26:05.667400533 +0000
+@@ -265,6 +265,8 @@
+ }
+ #endif /* HAVE_FTW_H */
+ 
++extern int nftw(const char *, int (*)(const char *, const struct stat *, int, struct FTW *), int, int);
++
+ static gpointer 
+ search_thread_func (gpointer user_data)
+ {
