@@ -1,0 +1,11 @@
+diff -Nur gzip-1.14/lib/endian.in.h gzip-1.14-irix/lib/endian.in.h
+--- gzip-1.14/lib/endian.in.h	2025-01-03 17:36:44.000000000 +0000
++++ gzip-1.14-irix/lib/endian.in.h	2025-05-23 10:20:02.412858045 +0000
+@@ -31,6 +31,7 @@
+ 
+ #elif @HAVE_SYS_ENDIAN_H@
+ 
++# include <standards.h>
+ # include <sys/endian.h>
+ 
+ #endif

@@ -4,11 +4,26 @@ set -xe
 
 TOPDIR=$PWD
 
+if [ "$1" = "o32" ]; then
+    CROSS_PREFIX=mips-sgi-irix6o32
+elif [ "$1" = "n32" ]; then
+    CROSS_PREFIX=mips-sgi-irix6n32
+    LIBDIR_SUFFIX=32
+    IRIX_VERSION=6.5
+else
+    echo "$0 o32|n32"
+    exit 1
+fi
+
 INST_PREFIX=/opt/pdaxrom-ng
 
-MAKE_TASKS=5
+MAKE_TASKS=16
 
-export PKG_CONFIG_PATH=${INST_PREFIX}/lib/pkgconfig
+LIBDIR_SUFFIX=${LIBDIR_SUFFIX:-}
+
+LIBDIR_PREFIX=${INST_PREFIX}/lib${LIBDIR_SUFFIX}
+
+export PKG_CONFIG_PATH=${LIBDIR_PREFIX}/pkgconfig
 
 mkdir -p ../build-tmp
 cd ../build-tmp
@@ -27,25 +42,36 @@ download() {
     test -f $(basename $1) || wget $1 || error "Download $1"
 }
 
-if ! test -e compat_irix.installed; then
-    cp -R ${TOPDIR}/compat-irix .
-    pushd compat-irix
-    make CROSS=mips-sgi-irix5- PREFIX=${INST_PREFIX} clean
-    make CROSS=mips-sgi-irix5- PREFIX=${INST_PREFIX} install
+apply_patch() {
+    for p in $@; do
+	patch -p1 < ${TOPDIR}/${p}
+    done
+}
 
-    popd
-    touch compat_irix.installed
+if [ "$DISABLE_COMPAT_IRIX_LIB" = "y" ]; then
+    COMPAT_IRIX_LIB=""
+    COMPAT_IRIX_LIB_STATIC=""
+else
+    if ! test -e compat_irix.installed; then
+	cp -R ${TOPDIR}/compat-irix .
+	pushd compat-irix
+	make CROSS=${CROSS_PREFIX}- PREFIX=${INST_PREFIX} LIBDIR=${LIBDIR_PREFIX} IRIX_VERSION=${IRIX_VERSION} clean
+	make CROSS=${CROSS_PREFIX}- PREFIX=${INST_PREFIX} LIBDIR=${LIBDIR_PREFIX} IRIX_VERSION=${IRIX_VERSION} install
+
+	popd
+	touch compat_irix.installed
+    fi
+
+    COMPAT_IRIX_LIB="-lcompat_irix"
+    COMPAT_IRIX_LIB_STATIC="${LIBDIR_PREFIX}/libcompat_irix.a"
 fi
-
-COMPAT_IRIX_LIB="-lcompat_irix"
-COMPAT_IRIX_LIB_STATIC="${INST_PREFIX}/lib/libcompat_irix.a"
 
 if ! test -e zlib.installed; then
     download https://zlib.net/zlib-1.3.1.tar.gz
     tar xf zlib-1.3.1.tar.gz || error "unpack zlib"
     pushd zlib-1.3.1
 
-    CC=mips-sgi-irix5-gcc ./configure --prefix=$INST_PREFIX || error "Configure zlib"
+    CC=${CROSS_PREFIX}-gcc ./configure --prefix=$INST_PREFIX --libdir=$LIBDIR_PREFIX || error "Configure zlib"
     make -j || error "Build zlib"
     make install || error "Install zlib"
 
@@ -53,13 +79,16 @@ if ! test -e zlib.installed; then
     touch zlib.installed
 fi
 
+GZIP_VERSION=1.14
 if ! test -e gzip.installed; then
-    download https://ftp.gnu.org/gnu/gzip/gzip-1.14.tar.xz
-    tar xf gzip-1.14.tar.xz
-    pushd gzip-1.14
-    mkdir build
+    download https://ftp.gnu.org/gnu/gzip/gzip-${GZIP_VERSION}.tar.xz
+    tar xf gzip-${GZIP_VERSION}.tar.xz
+    pushd gzip-${GZIP_VERSION}
+    apply_patch patches/gzip-1.14-irix.diff
+    mkdir -p build
     cd build
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17"
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="-L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" LIBS="${COMPAT_IRIX_LIB} -lgen"
+#    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX CPPFLAGS="-std=gnu99 -D_SGIAPI"
 
     make -j $MAKE_TASKS
 
@@ -69,18 +98,20 @@ if ! test -e gzip.installed; then
     touch gzip.installed
 fi
 
+BZIP2_VERSION=1.0.8
 if ! test -e bzip2.installed; then
-    download https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz
-    tar xf bzip2-1.0.8.tar.gz || error "unpack bzip2"
-    pushd bzip2-1.0.8
+    download https://sourceware.org/pub/bzip2/bzip2-${BZIP2_VERSION}.tar.gz
+    tar xf bzip2-${BZIP2_VERSION}.tar.gz || error "unpack bzip2"
+    pushd bzip2-${BZIP2_VERSION}
+    test ${TOPDIR}/patches/bzip2-${BZIP2_VERSION}-irix.diff && patch -p1 < ${TOPDIR}/patches/bzip2-${BZIP2_VERSION}-irix.diff
 
-    make CC="mips-sgi-irix5-gcc -std=gnu17" AR=mips-sgi-irix5-ar RANLIB=mips-sgi-irix5-ranlib PREFIX=$INST_PREFIX libbz2.a bzip2 bzip2recover || error "build bzip2"
-    make CC="mips-sgi-irix5-gcc -std=gnu17" AR=mips-sgi-irix5-ar RANLIB=mips-sgi-irix5-ranlib PREFIX=$INST_PREFIX install || error "install bzip2"
+    make CC="${CROSS_PREFIX}-gcc -std=gnu99" AR=${CROSS_PREFIX}-ar RANLIB=${CROSS_PREFIX}-ranlib PREFIX=$INST_PREFIX LIBDIR=$LIBDIR_PREFIX libbz2.a bzip2 bzip2recover || error "build bzip2"
+    make CC="${CROSS_PREFIX}-gcc -std=gnu99" AR=${CROSS_PREFIX}-ar RANLIB=${CROSS_PREFIX}-ranlib PREFIX=$INST_PREFIX LIBDIR=$LIBDIR_PREFIX install || error "install bzip2"
 
-    make CC="mips-sgi-irix5-gcc -std=gnu17" AR=mips-sgi-irix5-ar RANLIB=mips-sgi-irix5-ranlib PREFIX=$INST_PREFIX -f Makefile-libbz2_so || error "build bzip2"
-    cp -f libbz2.so.1.0.8 ${INST_PREFIX}/lib
-    ln -sf libbz2.so.1.0.8 ${INST_PREFIX}/lib/libbz2.so.1.0
-    ln -sf libbz2.so.1.0.8 ${INST_PREFIX}/lib/libbz2.so
+    make CC="${CROSS_PREFIX}-gcc -std=gnu99" AR=${CROSS_PREFIX}-ar RANLIB=${CROSS_PREFIX}-ranlib PREFIX=$INST_PREFIX LIBDIR=$LIBDIR_PREFIX -f Makefile-libbz2_so || error "build bzip2"
+    cp -f libbz2.so.${BZIP2_VERSION} ${LIBDIR_PREFIX}
+    ln -sf libbz2.so.${BZIP2_VERSION} ${LIBDIR_PREFIX}/libbz2.so.1.0
+    ln -sf libbz2.so.${BZIP2_VERSION} ${LIBDIR_PREFIX}/libbz2.so
 
     popd
     touch bzip2.installed
@@ -90,11 +121,11 @@ if ! test -e xz.installed; then
     download https://github.com/tukaani-project/xz/releases/download/v5.8.1/xz-5.8.1.tar.xz
     tar xf xz-5.8.1.tar.xz || error "unpack xz"
     pushd xz-5.8.1
-    patch -p1 < ${TOPDIR}/patches/xz-5.8.1-irix.diff
+#    patch -p1 < ${TOPDIR}/patches/xz-5.8.1-irix.diff
 
-    mkdir build
+    mkdir -p build
     cd build
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17"
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX} -lgen"
 
     make -j $MAKE_TASKS
 
@@ -108,10 +139,10 @@ if ! test -e liblz4.installed; then
     download https://github.com/lz4/lz4/releases/download/v1.10.0/lz4-1.10.0.tar.gz
     tar xf lz4-1.10.0.tar.gz
     pushd lz4-1.10.0
-    patch -p1 < ${TOPDIR}/patches/lz4-1.10.0-irix.diff
+#    patch -p1 < ${TOPDIR}/patches/lz4-1.10.0-irix.diff
 
-    make CC=mips-sgi-irix5-gcc LDFLAGS_DYNLIB= PREFIX=${INST_PREFIX} MOREFLAGS="-I/opt/pdaxrom/include -L/opt/pdaxrom/lib -Wl,-rpath-link,/opt/pdaxrom/lib"
-    make CC=mips-sgi-irix5-gcc LDFLAGS_DYNLIB= PREFIX=${INST_PREFIX} MOREFLAGS="-I/opt/pdaxrom/include -L/opt/pdaxrom/lib -Wl,-rpath-link,/opt/pdaxrom/lib" install
+    make CC=${CROSS_PREFIX}-gcc LDFLAGS_DYNLIB= PREFIX=${INST_PREFIX} libdir=${LIBDIR_PREFIX} CFLAGS="-O3 -std=gnu99 -I${INST_PREFIX}/include -Wno-implicit-function-declaration -DHAVE_MULTITHREAD=1 -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX} ${COMPAT_IRIX_LIB}" V=1
+    make CC=${CROSS_PREFIX}-gcc LDFLAGS_DYNLIB= PREFIX=${INST_PREFIX} libdir=${LIBDIR_PREFIX} CFLAGS="-O3 -std=gnu99 -I${INST_PREFIX}/include -Wno-implicit-function-declaration -DHAVE_MULTITHREAD=1 -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX} ${COMPAT_IRIX_LIB}" V=1 install
 
     popd
     touch liblz4.installed
@@ -122,8 +153,8 @@ if ! test -e zstd.installed; then
     tar xf zstd-1.5.7.tar.gz
     pushd zstd-1.5.7
 
-    make CC=mips-sgi-irix5-gcc LDFLAGS_DYNLIB= PREFIX=${INST_PREFIX} MOREFLAGS="-std=gnu17 -I${INST_PREFIX}/include -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
-    make CC=mips-sgi-irix5-gcc LDFLAGS_DYNLIB= PREFIX=${INST_PREFIX} MOREFLAGS="-std=gnu17 -I${INST_PREFIX}/include -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" install
+    make CC=${CROSS_PREFIX}-gcc LDFLAGS_DYNLIB= PREFIX=${INST_PREFIX} libdir=${LIBDIR_PREFIX} MOREFLAGS="-std=gnu99 -I${INST_PREFIX}/include -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
+    make CC=${CROSS_PREFIX}-gcc LDFLAGS_DYNLIB= PREFIX=${INST_PREFIX} libdir=${LIBDIR_PREFIX} MOREFLAGS="-std=gnu99 -I${INST_PREFIX}/include -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" install
 
     popd
     touch zstd.installed
@@ -136,7 +167,7 @@ if ! test -e lzo.installed; then
 
     mkdir -p build
     cd build
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --enable-shared CPPFLAGS="-I${INST_PREFIX}/include" LDFLAGS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --enable-shared CPPFLAGS="-I${INST_PREFIX}/include" LDFLAGS="-L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
 
     make -j $MAKE_TASKS
 
@@ -150,11 +181,10 @@ if ! test -e lzop.installed; then
     download https://www.lzop.org/download/lzop-1.04.tar.gz
     tar xf lzop-1.04.tar.gz
     pushd lzop-1.04
-#    patch -p1 < ${TOPDIR}/patches/lzop-1.04-irix.diff
 
     mkdir -p build
     cd build
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
 
     make -j $MAKE_TASKS
 
@@ -192,7 +222,13 @@ if ! test -e gettext.installed; then
     cd build
 #    cat ${TOPDIR}/caches/*.cache > gettext.cache
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --disable-threads CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=gettext.cache
+cat > gettext.cache << EOF
+ac_cv_have_decl_freeaddrinfo=${ac_cv_have_decl_freeaddrinfo=yes}
+ac_cv_have_decl_getaddrinfo=${ac_cv_have_decl_getaddrinfo=yes}
+gl_cv_func_getaddrinfo=${gl_cv_func_getaddrinfo=yes}
+ac_cv_type_struct_addrinfo=${ac_cv_type_struct_addrinfo=yes}
+EOF
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --disable-threads CPPFLAGS="-D_SGIAPI -std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=gettext.cache
 
     make -j $MAKE_TASKS
 
@@ -211,7 +247,7 @@ if ! test -e tar.installed; then
     mkdir -p build
     cd build
     cp -f ${TOPDIR}/caches/tar.cache .
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --disable-year2038  CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib -lintl" --cache-file=tar.cache
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --disable-year2038  CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="-L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX} -lintl" --cache-file=tar.cache
 
     make -j $MAKE_TASKS
 
@@ -229,7 +265,7 @@ if ! test -e ncurses.installed; then
     mkdir -p build
     cd build
     cp -f ${TOPDIR}/caches/ncurses.cache .
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --with-shared --with-cxx-shared --disable-widec --disable-stripping  CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=ncurses.cache
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --with-shared --with-cxx-shared --disable-widec --disable-stripping  CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=ncurses.cache
 
     make -j $MAKE_TASKS
 
@@ -238,8 +274,8 @@ if ! test -e ncurses.installed; then
     cd ..
     mkdir -p build-multi
     cd build-multi
-    cp -f ${TOPDIR}/caches/ncurses.cache .
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --with-shared --with-cxx-shared --disable-stripping  CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=ncurses.cache
+#    cp -f ${TOPDIR}/caches/ncurses.cache .
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --with-shared --with-cxx-shared --disable-stripping  CPPFLAGS="-std=gnu99 -D_WCHAR_CORE_EXTENSIONS_1 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=ncurses.cache
 
     make -j $MAKE_TASKS
 
@@ -256,8 +292,8 @@ if ! test -e readline.installed; then
     patch -p1 < ${TOPDIR}/patches/readline-8.2-irix.diff
     mkdir -p build
     cd build
-    cp -f ${TOPDIR}/caches/bash.cache readline.cache
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --enable-multibyte CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=readline.cache
+    cp -f ${TOPDIR}/caches/bash-5.2.37.cache readline.cache
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --enable-multibyte CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=readline.cache
 
     make -j $MAKE_TASKS
 
@@ -268,20 +304,22 @@ if ! test -e readline.installed; then
 fi
 
 BASH_VERSION=5.2.37
+#BASH_VERSION=3.2
 
 if ! test -e bash.installed; then
     download https://ftp.gnu.org/gnu/bash/bash-${BASH_VERSION}.tar.gz
     tar xf bash-${BASH_VERSION}.tar.gz
     pushd bash-${BASH_VERSION}
-    patch -p1 < ${TOPDIR}/patches/bash-${BASH_VERSION}-irix.diff
+    test -e ${TOPDIR}/patches/bash-${BASH_VERSION}-irix.diff  && patch -p1 < ${TOPDIR}/patches/bash-${BASH_VERSION}-irix.diff
     mkdir -p build
     cd build
-    cp -f ${TOPDIR}/caches/bash.cache .
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --without-bash-malloc --with-curses --enable-multibyte CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include -I${INST_PREFIX}/include/ncurses" LDFLAGS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" LIBS="${COMPAT_IRIX_LIB_STATIC}" --cache-file=bash.cache
+    test -e ${TOPDIR}/caches/bash-${BASH_VERSION}.cache && cp -f ${TOPDIR}/caches/bash-${BASH_VERSION}.cache .
+    test -e ${TOPDIR}/caches-single/bash-${BASH_VERSION}.cache && cp -f ${TOPDIR}/caches-single/bash-${BASH_VERSION}.cache .
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --without-bash-malloc --with-curses --enable-multibyte --disable-werror CPPFLAGS="-std=gnu99 -D__c99 -I${INST_PREFIX}/include -I${INST_PREFIX}/include/ncurses" LDFLAGS="-L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" LIBS="${COMPAT_IRIX_LIB_STATIC}" --cache-file=bash-${BASH_VERSION}.cache
 
-    make TERMCAP_LIB=${INST_PREFIX}/lib/libncurses.a -j $MAKE_TASKS
+    make TERMCAP_LIB=${LIBDIR_PREFIX}/libncurses.a -j $MAKE_TASKS
 
-    make TERMCAP_LIB=${INST_PREFIX}/lib/libncurses.a install
+    make TERMCAP_LIB=${LIBDIR_PREFIX}/libncurses.a install
 
     popd
     touch bash.installed
@@ -301,7 +339,7 @@ if ! test -e pkg-config.installed; then
     ac_cv_func_nonposix_getgrgid_r=no \
     ac_cv_func_posix_getpwuid_r=no \
     ac_cv_func_posix_getgrgid_r=no \
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --with-internal-glib CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --with-internal-glib CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
 
     make -j $MAKE_TASKS
 
@@ -311,60 +349,18 @@ if ! test -e pkg-config.installed; then
     touch pkg-config.installed
 fi
 
-if false; then
-if ! test -e libffi.installed; then
-    download https://github.com/libffi/libffi/releases/download/v3.4.8/libffi-3.4.8.tar.gz
-    tar xf libffi-3.4.8.tar.gz
-    pushd libffi-3.4.8
-    mkdir -p build
-    cd build
-
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
-
-    make -j $MAKE_TASKS
-
-    make install
-
-    popd
-    touch libffi.installed
-fi
-fi
-
-if false; then
-if ! test -e pcre2.installed; then
-    download https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.45/pcre2-10.45.tar.bz2
-    tar xf pcre2-10.45.tar.bz2
-    pushd pcre2-10.45
-    patch -p1 < ${TOPDIR}/patches/pcre2-10.45-irix.diff
-    mkdir build
-    cd build
-
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
-
-    make -j $MAKE_TASKS
-
-    make install
-
-
-    popd
-    touch pcre2.installed
-fi
-fi
-
 if ! test -e pcre.installed; then
     download https://yer.dl.sourceforge.net/project/pcre/pcre/8.45/pcre-8.45.tar.bz2
     tar xf pcre-8.45.tar.bz2
     pushd pcre-8.45
-    patch -p1 < ${TOPDIR}/patches/pcre-8.45-irix.diff
     mkdir build
     cd build
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
 
     make -j $MAKE_TASKS
 
     make install
-
 
     popd
     touch pcre.installed
@@ -404,7 +400,7 @@ if ! test -e glib2.installed; then
     ac_cv_func_nonposix_getgrgid_r=no \
     ac_cv_func_posix_getpwuid_r=no \
     ac_cv_func_posix_getgrgid_r=no \
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=glib2.cache
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=glib2.cache
 
     make -j $MAKE_TASKS
 
@@ -412,23 +408,6 @@ if ! test -e glib2.installed; then
 
     popd
     touch glib2.installed
-fi
-
-if false; then
-if ! test -e slang.installed; then
-    download https://www.jedsoft.org/releases/slang/slang-2.3.3.tar.bz2
-    tar xf slang-2.3.3.tar.bz2
-    pushd slang-2.3.3
-
-    ./configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
-
-    make -j $MAKE_TASKS
-
-    make install
-
-    popd
-    touch slang.installed
-fi
 fi
 
 if ! test -e mc.installed; then
@@ -440,7 +419,7 @@ if ! test -e mc.installed; then
     cd b
     cat ${TOPDIR}/caches/*.cache > mc.cache
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --with-screen=ncurses --with-x --with-ncurses-includes=${INST_PREFIX}/include --with-ncurses-libs=${INST_PREFIX}/lib CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=mc.cache
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --with-screen=ncurses --with-x --with-ncurses-includes=${INST_PREFIX}/include --with-ncurses-libs=${LIBDIR_PREFIX} CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=mc.cache
 
     make -j $MAKE_TASKS
 
@@ -459,7 +438,7 @@ if ! test -e make.installed; then
 #    cat ${TOPDIR}/caches/*.cache > make.cache
 
     ac_cv_header_stdbool_h=yes \
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include -DNO_GET_LOAD_AVG" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=make.cache
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include -DNO_GET_LOAD_AVG" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=make.cache
 
     make -j $MAKE_TASKS
 
@@ -479,7 +458,7 @@ if ! test -e wolfssl.installed; then
     cd b
     cp -f ${TOPDIR}/caches-single/wolf.cache .
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --enable-opensslall --enable-opensslextra CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include -DWOLFSSL_IRIX -DNO_INT128" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=wolf.cache
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --enable-opensslall --enable-opensslextra CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include -DWOLFSSL_IRIX -DNO_INT128" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=wolf.cache
 
     make -j $MAKE_TASKS
 
@@ -501,7 +480,7 @@ if ! test -e curl.installed; then
     mkdir -p ${INST_PREFIX}/etc
     test -e ${INST_PREFIX}/etc/cacert.pem || wget https://curl.se/ca/cacert.pem -O ${INST_PREFIX}/etc/cacert.pem
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --with-wolfssl --without-libpsl --with-ca-embed=${INST_PREFIX}/etc/cacert.pem CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" LIBS="${COMPAT_IRIX_LIB} -lpthread"
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --with-wolfssl --without-libpsl --with-ca-embed=${INST_PREFIX}/etc/cacert.pem CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="-L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" LIBS="${COMPAT_IRIX_LIB} -lpthread"
 
     make -j $MAKE_TASKS
 
@@ -509,6 +488,77 @@ if ! test -e curl.installed; then
 
     popd
     touch curl.installed
+fi
+
+SSH_VERSION=9.9p2
+if ! test -e openssh.installed; then
+    download https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-9.9p2.tar.gz
+    tar xf openssh-9.9p2.tar.gz
+    pushd openssh-9.9p2
+    patch -p1 < ${TOPDIR}/patches/openssh-9.9p2-irix.diff
+    mkdir -p buildx
+    cd buildx
+
+cat > openssh.cache << EOF
+ac_cv_have_decl_freeaddrinfo=${ac_cv_have_decl_freeaddrinfo=yes}
+ac_cv_have_decl_getaddrinfo=${ac_cv_have_decl_getaddrinfo=yes}
+gl_cv_func_getaddrinfo=${gl_cv_func_getaddrinfo=yes}
+ac_cv_type_struct_addrinfo=${ac_cv_type_struct_addrinfo=yes}
+ac_cv_have_struct_addrinfo=${ac_cv_have_struct_addrinfo=yes}
+ac_cv_func___b64_ntop=${ac_cv_func___b64_ntop=no}
+ac_cv_func___b64_pton=${ac_cv_func___b64_pton=no}
+EOF
+
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --sysconfdir=${INST_PREFIX}/etc/ssh --without-openssl --disable-strip --with-xauth=/usr/bin/X11/xauth --x-includes="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include" --x-libraries="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-implicit-int -std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=openssh.cache
+
+    make -j $MAKE_TASKS
+
+    make install
+
+    popd
+    touch openssh.installed
+fi
+
+exit 0
+
+if false; then
+if ! test -e libffi.installed; then
+    download https://github.com/libffi/libffi/releases/download/v3.4.8/libffi-3.4.8.tar.gz
+    tar xf libffi-3.4.8.tar.gz
+    pushd libffi-3.4.8
+    mkdir -p build
+    cd build
+
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="-L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
+
+    make -j $MAKE_TASKS
+
+    make install
+
+    popd
+    touch libffi.installed
+fi
+fi
+
+if false; then
+if ! test -e pcre2.installed; then
+    download https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.45/pcre2-10.45.tar.bz2
+    tar xf pcre2-10.45.tar.bz2
+    pushd pcre2-10.45
+    patch -p1 < ${TOPDIR}/patches/pcre2-10.45-irix.diff
+    mkdir build
+    cd build
+
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
+
+    make -j $MAKE_TASKS
+
+    make install
+
+
+    popd
+    touch pcre2.installed
+fi
 fi
 
 if false; then
@@ -520,7 +570,7 @@ if ! test -e xextensions.installed; then
     mkdir -p buildx
     cd buildx
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --x-includes="$(mips-sgi-irix5-gcc -print-sysroot)/usr/include" --x-libraries="$(mips-sgi-irix5-gcc -print-sysroot)/usr/lib" CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --x-includes="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include" --x-libraries="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/lib" CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
 
     make -j $MAKE_TASKS
 
@@ -539,7 +589,7 @@ if ! test -e renderext.installed; then
     mkdir -p buildx
     cd buildx
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --x-includes="$(mips-sgi-irix5-gcc -print-sysroot)/usr/include" --x-libraries="$(mips-sgi-irix5-gcc -print-sysroot)/usr/lib" CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --x-includes="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include" --x-libraries="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/lib" CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
 
     make -j $MAKE_TASKS
 
@@ -560,7 +610,7 @@ if ! test -e libxrender.installed; then
     mkdir -p buildx
     cd buildx
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --x-includes="$(mips-sgi-irix5-gcc -print-sysroot)/usr/include" --x-libraries="$(mips-sgi-irix5-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-implicit-int -std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --x-includes="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include" --x-libraries="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-implicit-int -std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
 
     make -j $MAKE_TASKS
 
@@ -586,7 +636,7 @@ if ! test -e atk.installed; then
     ac_cv_func_nonposix_getgrgid_r=no \
     ac_cv_func_posix_getpwuid_r=no \
     ac_cv_func_posix_getgrgid_r=no \
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=glib2.cache
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=glib2.cache
 
     make -j $MAKE_TASKS
 
@@ -603,7 +653,7 @@ if ! test -e libjpeg.installed; then
     mkdir -p buildx
     cd buildx
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
 
     make -j $MAKE_TASKS
 
@@ -622,7 +672,7 @@ if ! test -e libpng.installed; then
     mkdir -p buildx
     cd buildx
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --disable-tools --disable-tests CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --disable-tools --disable-tests CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
 
     make -j $MAKE_TASKS
 
@@ -640,7 +690,7 @@ if ! test -e libtiff.installed; then
     mkdir -p buildx
     cd buildx
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
 
     make -j $MAKE_TASKS
 
@@ -659,7 +709,7 @@ if ! test -e hardbuzz.installed; then
     mkdir -p buildx
     cd buildx
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
 
     make -j $MAKE_TASKS
 
@@ -678,7 +728,7 @@ if ! test -e freetype.installed; then
     mkdir -p buildx
     cd buildx
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
 
     make -j $MAKE_TASKS
 
@@ -696,7 +746,7 @@ if ! test -e libxml2.installed; then
     mkdir -p buildx
     cd buildx
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --without-python CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --without-python CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
 
     make -j $MAKE_TASKS
 
@@ -714,7 +764,7 @@ if ! test -e fontconfig.installed; then
     mkdir -p buildx
     cd buildx
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --enable-libxml2 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --enable-libxml2 CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
 
     make -j $MAKE_TASKS
 
@@ -733,7 +783,7 @@ if ! test -e pixman.installed; then
     mkdir -p buildx
     cd buildx
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 CPPFLAGS="-std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
 
     make -j $MAKE_TASKS
 
@@ -752,7 +802,7 @@ if ! test -e cairo.installed; then
     mkdir -p buildx
     cd buildx
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --enable-xlib-xrender=no --x-includes="$(mips-sgi-irix5-gcc -print-sysroot)/usr/include" --x-libraries="$(mips-sgi-irix5-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-implicit-int -std=gnu17 -I${INST_PREFIX}/include -DCAIRO_NO_MUTEX" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib"
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --enable-xlib-xrender=no --x-includes="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include" --x-libraries="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-implicit-int -std=gnu99 -I${INST_PREFIX}/include -DCAIRO_NO_MUTEX" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
 
     make -j $MAKE_TASKS
 
@@ -778,7 +828,7 @@ if ! test -e pango.installed; then
     ac_cv_func_nonposix_getgrgid_r=no \
     ac_cv_func_posix_getpwuid_r=no \
     ac_cv_func_posix_getgrgid_r=no \
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --x-includes="$(mips-sgi-irix5-gcc -print-sysroot)/usr/include" --x-libraries="$(mips-sgi-irix5-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-implicit-int -std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=glib2.cache
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --x-includes="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include" --x-libraries="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-implicit-int -std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=glib2.cache
 
     make -j $MAKE_TASKS
 
@@ -807,7 +857,7 @@ if ! test -e gtk.installed; then
     ac_cv_func_posix_getpwuid_r=no \
     ac_cv_func_posix_getgrgid_r=no \
     gio_can_sniff=yes \
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --disable-visibility --without-libjasper --x-includes="$(mips-sgi-irix5-gcc -print-sysroot)/usr/include" --x-libraries="$(mips-sgi-irix5-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-incompatible-pointer-types -Wno-implicit-int -std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=glib2.cache
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --disable-visibility --without-libjasper --x-includes="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include" --x-libraries="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-incompatible-pointer-types -Wno-implicit-int -std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=glib2.cache
 
     make -j $MAKE_TASKS
 
@@ -826,7 +876,7 @@ if ! test -e imlib2.installed; then
     mkdir -p buildx
     cd buildx
 
-    ../configure --prefix=$INST_PREFIX --host=mips-sgi-irix5 --x-includes="$(mips-sgi-irix5-gcc -print-sysroot)/usr/include" --x-libraries="$(mips-sgi-irix5-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-implicit-int -std=gnu17 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" --cache-file=glib2.cache
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --x-includes="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include" --x-libraries="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-implicit-int -std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=glib2.cache
 
     make -j $MAKE_TASKS
 
@@ -843,8 +893,8 @@ if ! test -e feh.installed; then
     pushd feh-${FEH_VERSION}
     patch -p1 < ${TOPDIR}/patches/feh-3.10.3-irix.diff
 
-    make CC=mips-sgi-irix5-gcc EXTRA_CFLAGS="-I${INST_PREFIX}/include -Wno-implicit-int -Wno-incompatible-pointer-types -DHOST_NAME_MAX" EXTRA_LDLIBS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" PREFIX=${INST_PREFIX} xinerama=0 mkstemps=0 verscmp=0
-    make CC=mips-sgi-irix5-gcc EXTRA_CFLAGS="-I${INST_PREFIX}/include -Wno-implicit-int -Wno-incompatible-pointer-types -DHOST_NAME_MAX" EXTRA_LDLIBS="-L${INST_PREFIX}/lib -Wl,-rpath-link,${INST_PREFIX}/lib" PREFIX=${INST_PREFIX} xinerama=0 mkstemps=0 verscmp=0 install
+    make CC=${CROSS_PREFIX}-gcc EXTRA_CFLAGS="-I${INST_PREFIX}/include -Wno-implicit-int -Wno-incompatible-pointer-types -DHOST_NAME_MAX" EXTRA_LDLIBS="-L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" PREFIX=${INST_PREFIX} xinerama=0 mkstemps=0 verscmp=0
+    make CC=${CROSS_PREFIX}-gcc EXTRA_CFLAGS="-I${INST_PREFIX}/include -Wno-implicit-int -Wno-incompatible-pointer-types -DHOST_NAME_MAX" EXTRA_LDLIBS="-L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" PREFIX=${INST_PREFIX} xinerama=0 mkstemps=0 verscmp=0 install
 
     popd
     touch feh.installed

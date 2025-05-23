@@ -292,7 +292,7 @@
 #endif	/* HAVE_STDARG_H */
 
 #if !HAVE_VASPRINTF
-#define vasprintf rpl_vasprintf
+/* #define vasprintf rpl_vasprintf */
 #if HAVE_STDLIB_H
 #include <stdlib.h>	/* For malloc(3). */
 #endif	/* HAVE_STDLIB_H */
@@ -317,7 +317,7 @@ static void *mymemcpy(void *, void *, size_t);
 #endif	/* !HAVE_VASPRINTF */
 
 #if !HAVE_VSNPRINTF
-#define vsnprintf rpl_vsnprintf
+/* #define vsnprintf rpl_vsnprintf */
 #include <errno.h>	/* For ERANGE and errno. */
 #include <limits.h>	/* For *_MAX. */
 #if HAVE_FLOAT_H
@@ -337,11 +337,11 @@ static void *mymemcpy(void *, void *, size_t);
 #endif	/* HAVE_STDINT_H */
 
 #if !HAVE_ASPRINTF
-#define asprintf rpl_asprintf
+/* #define asprintf rpl_asprintf */
 #endif	/* !HAVE_ASPRINTF */
 
 #if !HAVE_SNPRINTF
-#define snprintf rpl_snprintf
+/* #define snprintf rpl_snprintf */
 #endif	/* !HAVE_SNPRINTF */
 
 /* Support for unsigned long long int.  We may also need ULLONG_MAX. */
@@ -540,7 +540,7 @@ static LDOUBLE mypow10(int);
 extern int errno;
 
 int
-rpl_vsnprintf(char *str, size_t size, const char *format, va_list args)
+vsnprintf(char *str, size_t size, const char *format, va_list args)
 {
 	LDOUBLE fvalue;
 	INTMAX_T value;
@@ -1492,7 +1492,7 @@ mymemcpy(void *dst, void *src, size_t len)
 #endif	/* NEED_MYMEMCPY */
 
 int
-rpl_vasprintf(char **ret, const char *format, va_list ap)
+vasprintf(char **ret, const char *format, va_list ap)
 {
 	size_t size;
 	int len;
@@ -1510,10 +1510,10 @@ rpl_vasprintf(char **ret, const char *format, va_list ap)
 #if !HAVE_SNPRINTF
 #if HAVE_STDARG_H
 int
-rpl_snprintf(char *str, size_t size, const char *format, ...)
+snprintf(char *str, size_t size, const char *format, ...)
 #else
 int
-rpl_snprintf(va_alist) va_dcl
+snprintf(va_alist) va_dcl
 #endif	/* HAVE_STDARG_H */
 {
 #if !HAVE_STDARG_H
@@ -1537,10 +1537,10 @@ rpl_snprintf(va_alist) va_dcl
 #if !HAVE_ASPRINTF
 #if HAVE_STDARG_H
 int
-rpl_asprintf(char **ret, const char *format, ...)
+asprintf(char **ret, const char *format, ...)
 #else
 int
-rpl_asprintf(va_alist) va_dcl
+asprintf(va_alist) va_dcl
 #endif	/* HAVE_STDARG_H */
 {
 #if !HAVE_STDARG_H

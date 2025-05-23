@@ -1,12 +1,11 @@
-#ifndef COMPAT_UNICODE_H
-#define COMPAT_UNICODE_H
+#ifndef COMPAT_WCHAR_H
+#define COMPAT_WCHAR_H
+
+#include <compat_config.h>
 
 #include <stddef.h>
 #include <errno.h>
 
-#if defined(__STDC_ISO_10646__) || defined(__GLIBC__) || defined(_WIN32)
-#include <wchar.h>
-#else /* fallback for old systems (like IRIX 5.3) */
 #include_next <wchar.h>
 
 #ifdef __cplusplus
@@ -21,8 +20,11 @@ size_t mbrtowc(wchar_t *pwc, const char *s, size_t n, mbstate_t *ps);
 size_t mbsrtowcs(wchar_t *dst, const char **src, size_t len, mbstate_t *ps);
 size_t wcsrtombs(char *dst, const wchar_t **src, size_t len, mbstate_t *ps);
 
+#ifndef COMPAT_IRIX_65
 int wctob(wchar_t wc);
 wchar_t btowc(int c);
+#endif
+
 size_t wcsnlen(const wchar_t *s, size_t n);
 wchar_t *wmemcpy(wchar_t *dest, const wchar_t *src, size_t n);
 wchar_t *wmempcpy(wchar_t *dest, const wchar_t *src, size_t n);
@@ -48,6 +50,4 @@ wchar_t *wcsdup(const wchar_t *s);
 }
 #endif
 
-#endif /* fallback */
-
-#endif /* COMPAT_UNICODE_H */
+#endif /* COMPAT_WCHAR_H */

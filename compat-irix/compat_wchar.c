@@ -16,10 +16,12 @@
 
 #include <wchar.h>
 
+#ifndef COMPAT_IRIX_65
 int isblank(int c)
 {
     return c == ' ' || c == '\t';
 }
+#endif
 
 int mbsinit(const mbstate_t *ps)
 {
@@ -172,6 +174,7 @@ size_t wcsrtombs(char *dst, const wchar_t **src, size_t len, mbstate_t *ps)
     return count;
 }
 
+#ifndef COMPAT_IRIX_65
 int wctob(wchar_t wc)
 {
     if ((unsigned int)wc <= 0xFF) {
@@ -190,6 +193,7 @@ wchar_t btowc(int c)
     unsigned char uc = (unsigned char)c;
     return (wchar_t)uc;
 }
+#endif
 
 size_t wcsnlen(const wchar_t *s, size_t n)
 {
