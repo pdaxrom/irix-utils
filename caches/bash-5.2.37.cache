@@ -94,7 +94,6 @@ ac_cv_have_sig_atomic_t=${ac_cv_have_sig_atomic_t=yes}
 ac_cv_header_stdbool_h=${ac_cv_header_stdbool_h=no}
 ac_cv_lib_dl_dlopen=${ac_cv_lib_dl_dlopen=yes}
 ac_cv_lib_pthread_pthread_kill=${ac_cv_lib_pthread_pthread_kill=yes}
-ac_cv_lib_termcap_tgetent=${ac_cv_lib_termcap_tgetent=yes}
 ac_cv_type_long_long_int=${ac_cv_type_long_long_int=yes}
 ac_cv_type_pthread_rwlock_t=${ac_cv_type_pthread_rwlock_t=no}
 ac_cv_type_unsigned_long_long_int=${ac_cv_type_unsigned_long_long_int=yes}
@@ -110,7 +109,6 @@ bash_cv_posix_signals=${bash_cv_posix_signals=yes}
 bash_cv_signal_vintage=${bash_cv_signal_vintage=posix}
 bash_cv_std_putenv=${bash_cv_std_putenv=no}
 bash_cv_sys_errlist=${bash_cv_sys_errlist=yes}
-bash_cv_termcap_lib=${bash_cv_termcap_lib=libtermcap}
 bash_cv_wcwidth_broken=${bash_cv_wcwidth_broken=yes}
 gl_cv_have_weak=${gl_cv_have_weak=yes}
 gl_cv_header_stdint_h=${gl_cv_header_stdint_h=no}

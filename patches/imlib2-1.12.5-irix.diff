@@ -1,0 +1,51 @@
+diff -Nur imlib2-1.12.5/src/bin/prog_util.c imlib2-1.12.5-irix/src/bin/prog_util.c
+--- imlib2-1.12.5/src/bin/prog_util.c	2025-03-06 18:27:48.000000000 +0000
++++ imlib2-1.12.5-irix/src/bin/prog_util.c	2025-05-05 07:36:40.842876695 +0000
+@@ -3,6 +3,8 @@
+  */
+ #include "config.h"
+ 
++#undef USE_MONOTONIC_CLOCK
++
+ #if USE_MONOTONIC_CLOCK
+ #include <time.h>
+ #else
+diff -Nur imlib2-1.12.5/src/lib/color_helpers.c imlib2-1.12.5-irix/src/lib/color_helpers.c
+--- imlib2-1.12.5/src/lib/color_helpers.c	2024-01-02 13:11:20.000000000 +0000
++++ imlib2-1.12.5-irix/src/lib/color_helpers.c	2025-05-05 07:35:57.835550834 +0000
+@@ -8,6 +8,11 @@
+ 
+ #include "color_helpers.h"
+ 
++static double round(double x)
++{
++    return floor(x + 0.5);
++}
++
+ void
+ __imlib_rgb_to_hsv(int r, int g, int b, float *h, float *s, float *v)
+ {
+diff -Nur imlib2-1.12.5/src/lib/dynamic_filters.c imlib2-1.12.5-irix/src/lib/dynamic_filters.c
+--- imlib2-1.12.5/src/lib/dynamic_filters.c	2024-01-02 13:11:20.000000000 +0000
++++ imlib2-1.12.5-irix/src/lib/dynamic_filters.c	2025-05-05 07:35:57.835550834 +0000
+@@ -33,7 +33,7 @@
+     MALLOCSHOW;
+     ptr = malloc(sizeof(ImlibExternalFilter));
+     ptr->filename = strdup(file);
+-    ptr->handle = dlopen(file, RTLD_NOW | RTLD_LOCAL);
++    ptr->handle = dlopen(file, RTLD_NOW);
+     if (!ptr->handle)
+     {
+         FREESHOW;
+diff -Nur imlib2-1.12.5/src/lib/loaders.c imlib2-1.12.5-irix/src/lib/loaders.c
+--- imlib2-1.12.5/src/lib/loaders.c	2025-04-06 13:23:11.000000000 +0000
++++ imlib2-1.12.5-irix/src/lib/loaders.c	2025-05-05 07:35:57.835550834 +0000
+@@ -204,7 +204,7 @@
+     if (!l)
+         goto bail;
+ 
+-    l->handle = dlopen(file, RTLD_NOW | RTLD_LOCAL);
++    l->handle = dlopen(file, RTLD_NOW);
+     if (!l->handle)
+     {
+         DP("%s: dlerror: %s\n", __func__, dlerror());

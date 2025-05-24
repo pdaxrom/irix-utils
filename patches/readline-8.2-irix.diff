@@ -1,0 +1,36 @@
+diff -Nur readline-8.2/input.c readline-8.2-irix/input.c
+--- readline-8.2/input.c	2022-04-08 19:43:24.000000000 +0000
++++ readline-8.2-irix/input.c	2025-05-22 16:40:27.987881570 +0000
+@@ -37,6 +37,8 @@
+ #  include <sys/file.h>
+ #endif /* HAVE_SYS_FILE_H */
+ 
++#include <sys/select.h>
++
+ #if defined (HAVE_UNISTD_H)
+ #  include <unistd.h>
+ #endif /* HAVE_UNISTD_H */
+@@ -807,8 +809,8 @@
+   int fd;
+ #if defined (HAVE_PSELECT)
+   sigset_t empty_set;
+-  fd_set readfds;
+ #endif
++  fd_set readfds;
+ 
+   fd = fileno (stream);
+   while (1)
+diff -Nur readline-8.2/posixselect.h readline-8.2-irix/posixselect.h
+--- readline-8.2/posixselect.h	2009-04-19 16:59:16.000000000 +0000
++++ readline-8.2-irix/posixselect.h	2025-05-22 16:45:34.448174886 +0000
+@@ -25,6 +25,10 @@
+ #  define HAVE_SELECT 1
+ #endif
+ 
++#ifdef sgi
++#include <sys/signal.h>
++#endif
++
+ #if defined (HAVE_SELECT)
+ #  if !defined (HAVE_SYS_SELECT_H) || !defined (M_UNIX)
+ #    include <sys/time.h>

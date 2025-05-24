@@ -1,0 +1,22 @@
+diff -Nur atk-2.1.0/atk/atktext.c atk-2.1.0-irix/atk/atktext.c
+--- atk-2.1.0/atk/atktext.c	2011-07-19 10:24:43.000000000 +0000
++++ atk-2.1.0-irix/atk/atktext.c	2025-05-04 14:19:44.514344428 +0000
+@@ -1430,5 +1430,5 @@
+   g_free (range);
+ }
+ 
+-G_DEFINE_BOXED_TYPE (AtkTextRange, atk_text_range, atk_text_range_copy,
+-                     atk_text_range_free)
++//G_DEFINE_BOXED_TYPE (AtkTextRange, atk_text_range, atk_text_range_copy,
++//                     atk_text_range_free)
+diff -Nur atk-2.1.0/atk/Makefile.in atk-2.1.0-irix/atk/Makefile.in
+--- atk-2.1.0/atk/Makefile.in	2011-07-24 18:02:46.000000000 +0000
++++ atk-2.1.0-irix/atk/Makefile.in	2025-05-04 14:17:37.266509439 +0000
+@@ -314,7 +314,6 @@
+ INCLUDES = \
+ 	-I$(top_srcdir)		\
+ 	-DG_DISABLE_DEPRECATED	\
+-	-DATK_DISABLE_DEPRECATED	\
+ 	-DATK_COMPILATION	\
+ 	-DATK_LOCALEDIR="\"$(datadir)/locale\""	\
+ 	$(DEP_CFLAGS)

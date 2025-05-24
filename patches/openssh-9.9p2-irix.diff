@@ -1,0 +1,147 @@
+diff -Nur openssh-9.9p2/Makefile.in openssh-9.9p2-irix/Makefile.in
+--- openssh-9.9p2/Makefile.in	2025-02-18 08:15:08.000000000 +0000
++++ openssh-9.9p2-irix/Makefile.in	2025-05-12 12:52:54.989616571 +0000
+@@ -393,7 +393,7 @@
+ install-nosysconf: $(CONFIGFILES) $(MANPAGES) $(TARGETS) install-files
+ 
+ check-config:
+-	-$(DESTDIR)$(sbindir)/sshd -t -f $(DESTDIR)$(sysconfdir)/sshd_config
++#	-$(DESTDIR)$(sbindir)/sshd -t -f $(DESTDIR)$(sysconfdir)/sshd_config
+ 
+ install-files:
+ 	$(MKDIR_P) $(DESTDIR)$(bindir)
+@@ -402,7 +402,7 @@
+ 	$(MKDIR_P) $(DESTDIR)$(mandir)/$(mansubdir)5
+ 	$(MKDIR_P) $(DESTDIR)$(mandir)/$(mansubdir)8
+ 	$(MKDIR_P) $(DESTDIR)$(libexecdir)
+-	$(MKDIR_P) -m 0755 $(DESTDIR)$(PRIVSEP_PATH)
++	$(MKDIR_P) -m 0755 $(DESTDIR)$(PRIVSEP_PATH) || true
+ 	$(INSTALL) -m 0755 $(STRIP_OPT) ssh$(EXEEXT) $(DESTDIR)$(bindir)/ssh$(EXEEXT)
+ 	$(INSTALL) -m 0755 $(STRIP_OPT) scp$(EXEEXT) $(DESTDIR)$(bindir)/scp$(EXEEXT)
+ 	$(INSTALL) -m 0755 $(STRIP_OPT) ssh-add$(EXEEXT) $(DESTDIR)$(bindir)/ssh-add$(EXEEXT)
+@@ -456,17 +456,17 @@
+ 	fi
+ 
+ host-key: ssh-keygen$(EXEEXT)
+-	@if [ -z "$(DESTDIR)" ] ; then \
+-		./ssh-keygen -A; \
+-	fi
++#	@if [ -z "$(DESTDIR)" ] ; then \
++#		./ssh-keygen -A; \
++#	fi
+ 
+ host-key-force: ssh-keygen$(EXEEXT) ssh$(EXEEXT)
+-	./ssh-keygen -t dsa -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N ""
+-	./ssh-keygen -t rsa -f $(DESTDIR)$(sysconfdir)/ssh_host_rsa_key -N ""
+-	./ssh-keygen -t ed25519 -f $(DESTDIR)$(sysconfdir)/ssh_host_ed25519_key -N ""
+-	if ./ssh -Q key | grep ecdsa >/dev/null ; then \
+-		./ssh-keygen -t ecdsa -f $(DESTDIR)$(sysconfdir)/ssh_host_ecdsa_key -N ""; \
+-	fi
++#	./ssh-keygen -t dsa -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N ""
++#	./ssh-keygen -t rsa -f $(DESTDIR)$(sysconfdir)/ssh_host_rsa_key -N ""
++#	./ssh-keygen -t ed25519 -f $(DESTDIR)$(sysconfdir)/ssh_host_ed25519_key -N ""
++#	if ./ssh -Q key | grep ecdsa >/dev/null ; then \
++#		./ssh-keygen -t ecdsa -f $(DESTDIR)$(sysconfdir)/ssh_host_ecdsa_key -N ""; \
++#	fi
+ 
+ uninstallall:	uninstall
+ 	-rm -f $(DESTDIR)$(sysconfdir)/ssh_config
+diff -Nur openssh-9.9p2/openbsd-compat/arc4random.h openssh-9.9p2-irix/openbsd-compat/arc4random.h
+--- openssh-9.9p2/openbsd-compat/arc4random.h	2025-02-18 08:15:08.000000000 +0000
++++ openssh-9.9p2-irix/openbsd-compat/arc4random.h	2025-05-12 12:47:24.257837593 +0000
+@@ -65,7 +65,7 @@
+ static inline int
+ _rs_allocate(struct _rs **rsp, struct _rsx **rsxp)
+ {
+-#if defined(MAP_ANON) && defined(MAP_PRIVATE)
++#if !defined(sgi) && defined(MAP_ANON) && defined(MAP_PRIVATE)
+ 	if ((*rsp = mmap(NULL, sizeof(**rsp), PROT_READ|PROT_WRITE,
+ 	    MAP_ANON|MAP_PRIVATE, -1, 0)) == MAP_FAILED)
+ 		return (-1);
+diff -Nur openssh-9.9p2/openbsd-compat/bsd-getentropy.c openssh-9.9p2-irix/openbsd-compat/bsd-getentropy.c
+--- openssh-9.9p2/openbsd-compat/bsd-getentropy.c	2025-02-18 08:15:08.000000000 +0000
++++ openssh-9.9p2-irix/openbsd-compat/bsd-getentropy.c	2025-05-12 12:47:24.257837593 +0000
+@@ -38,6 +38,25 @@
+ 
+ #include "log.h"
+ 
++#ifdef sgi
++#include <time.h>
++#include <stdlib.h>
++static int irix_getrandom(uint8_t *output, size_t sz)
++{
++    size_t i;
++    srand(clock());
++
++    for (i = 0; i < sz; i++ ) {
++        output[i] = rand() % 256;
++        if ((i % 8) == 7) {
++            srand(clock());
++        }
++    }
++
++    return 0;
++}
++#endif
++
+ int
+ _ssh_compat_getentropy(void *s, size_t len)
+ {
+@@ -62,6 +81,10 @@
+ 	if ((r = getrandom(s, len, 0)) > 0 && (size_t)r == len)
+ 		return 0;
+ #endif /* HAVE_GETRANDOM */
++#ifdef sgi
++	if ((r = irix_getrandom(s, len)) == 0)
++		return 0;
++#endif
+ 
+ 	if ((fd = open(SSH_RANDOM_DEV, O_RDONLY)) == -1) {
+ 		save_errno = errno;
+diff -Nur openssh-9.9p2/scp.c openssh-9.9p2-irix/scp.c
+--- openssh-9.9p2/scp.c	2025-02-18 08:15:08.000000000 +0000
++++ openssh-9.9p2-irix/scp.c	2025-05-12 12:47:24.257837593 +0000
+@@ -1016,7 +1016,7 @@
+ 
+ static struct sftp_conn *
+ do_sftp_connect(char *host, char *user, int port, char *sftp_direct,
+-   int *reminp, int *remoutp, int *pidp)
++   int *reminp, int *remoutp, pid_t *pidp)
+ {
+ 	if (sftp_direct == NULL) {
+ 		if (do_cmd(ssh_program, host, user, port, 1, "sftp",
+diff -Nur openssh-9.9p2/sshkey.c openssh-9.9p2-irix/sshkey.c
+--- openssh-9.9p2/sshkey.c	2025-02-18 08:15:08.000000000 +0000
++++ openssh-9.9p2-irix/sshkey.c	2025-05-12 12:47:24.258837648 +0000
+@@ -766,14 +766,18 @@
+ sshkey_prekey_alloc(u_char **prekeyp, size_t len)
+ {
+ 	u_char *prekey;
+-
+ 	*prekeyp = NULL;
++#ifdef sgi
++	if ((prekey = malloc(len)) == NULL)
++		return SSH_ERR_SYSTEM_ERROR;
++#else
+ 	if ((prekey = mmap(NULL, len, PROT_READ|PROT_WRITE,
+ 	    MAP_ANON|MAP_PRIVATE|PREKEY_MMAP_FLAG, -1, 0)) == MAP_FAILED)
+ 		return SSH_ERR_SYSTEM_ERROR;
+ #if defined(MADV_DONTDUMP) && !defined(MAP_CONCEAL) && !defined(MAP_NOCORE)
+ 	(void)madvise(prekey, len, MADV_DONTDUMP);
+ #endif
++#endif
+ 	*prekeyp = prekey;
+ 	return 0;
+ }
+@@ -783,7 +787,11 @@
+ {
+ 	if (prekey == NULL)
+ 		return;
++#ifdef sgi
++	free(prekey);
++#else
+ 	munmap(prekey, len);
++#endif
+ }
+ 
+ static void

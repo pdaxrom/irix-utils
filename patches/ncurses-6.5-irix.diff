@@ -1,0 +1,11 @@
+diff -Nur ncurses-6.5/include/curses.h.in ncurses-6.5-irix/include/curses.h.in
+--- ncurses-6.5/include/curses.h.in	2024-01-19 11:50:07.000000000 +0000
++++ ncurses-6.5-irix/include/curses.h.in	2025-04-28 06:28:29.034019445 +0000
+@@ -97,6 +97,7 @@
+ #endif
+ 
+ #ifdef __cplusplus
++#include <cstdint>
+ #else
+ #if @HAVE_STDNORETURN_H@
+ #include <stdnoreturn.h>
