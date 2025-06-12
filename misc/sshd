@@ -1,0 +1,33 @@
+#!/sbin/sh
+
+# add to /etc/group
+# sshd::33:
+# add to /etc/passwd
+# sshd:*:33:33::/:/dev/null
+
+# cp sshd /etc/init.d
+# chmod 755 /etc/init.d/sshd
+# ln -s /etc/init.d/sshd /etc/rc0.d/K39sshd
+# ln -s /etc/init.d/sshd /etc/rc2.d/S50sshd
+# LD_LIBRARY_PATH=/opt/pdaxrom-ng/lib /opt/pdaxrom-ng/bin/ssh-keygen -t ed25519 -f /opt/pdaxrom-ng/etc/ssh/ssh_host_ed25519_key
+# mkdir -p /var/empty
+# chkconfig -f sshd on
+
+IS_ON=/sbin/chkconfig
+SSHD=/opt/pdaxrom-ng/sbin/sshd
+
+case "$1" in
+  'start')
+	if $IS_ON sshd && test -x $SSHD; then
+		LD_LIBRARY_PATH=/opt/pdaxrom-ng/lib $SSHD
+	fi
+        ;;
+
+  'stop')
+	/sbin/killall -k 10 -TERM sshd
+        ;;
+
+  *)
+        echo "usage: /etc/init.d/sshd {start|stop}"
+        ;;
+esac

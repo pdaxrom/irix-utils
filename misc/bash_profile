@@ -1,0 +1,50 @@
+#
+# This is the default standard .profile provided to sh users.
+# They are expected to edit it to meet their own needs.
+#
+# The commands in this file are executed when an sh user first
+# logs in.
+#
+# $Revision: 1.1 $
+#
+
+export PATH=/opt/pdaxrom-ng/bin:/usr/sbin:/usr/bsd:/sbin:/usr/bin:/etc:/usr/etc:/usr/bin/X11
+export LD_LIBRARY_PATH=/opt/pdaxrom-ng/lib
+export PS1="\[\e]0;\u@\h: \w\a\]\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
+
+if [ -z "$ENVONLY" ]
+then
+    # Set the interrupt character to Ctrl-c and do clean backspacing.
+    if [ -t 0 ]
+    then
+        stty intr '^C' echoe
+    fi
+
+    # Set the TERM environment variable
+    if [ -d /usr/lib/terminfo ]
+    then
+        eval `tset -s -Q`
+    fi
+
+    # save tty state in a file where wsh can find it
+    if [ ! -f $HOME/.wshttymode -a -t 0 ]
+    then
+        stty -g > $HOME/.wshttymode
+    fi
+fi
+
+if [ "${SSH_CLIENT}" = "" ]; then
+    export TERM=iris-color
+fi
+
+# Set the default X server.
+if [ ${DISPLAY:-setdisplay} = setdisplay ]
+then
+    if [ ${REMOTEHOST:-islocal} != islocal ]
+    then
+        DISPLAY=${REMOTEHOST}:0
+    else
+        DISPLAY=:0
+    fi
+    export DISPLAY
+fi
