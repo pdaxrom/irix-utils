@@ -542,6 +542,34 @@ EOF
     touch openssh.installed
 fi
 
+ZIP_VERSION=30
+if ! test -e zip.installed; then
+    download https://downloads.sourceforge.net/infozip/zip${ZIP_VERSION}.tar.gz
+    tar xf zip${ZIP_VERSION}.tar.gz
+    pushd zip${ZIP_VERSION}
+
+    make -f unix/Makefile generic CC="${CROSS_PREFIX}-gcc -std=gnu89"
+
+    make prefix=$INST_PREFIX MANDIR=${INST_PREFIX}/share/man/man1 -f unix/Makefile install
+
+    popd
+    touch zip.installed
+fi
+
+UNZIP_VERSION=60
+if ! test -e unzip.installed; then
+    download https://sourceforge.net/projects/infozip/files/UnZip%206.x%20%28latest%29/UnZip%206.0/unzip${UNZIP_VERSION}.tar.gz
+    tar xf unzip${UNZIP_VERSION}.tar.gz
+    pushd unzip${UNZIP_VERSION}
+
+    make -f unix/Makefile generic CC="${CROSS_PREFIX}-gcc -std=gnu89"
+
+    make prefix=$INST_PREFIX MANDIR=${INST_PREFIX}/share/man/man1 -f unix/Makefile install
+
+    popd
+    touch unzip.installed
+fi
+
 exit 0
 
 if false; then
