@@ -4,6 +4,12 @@
 #include <compat_config.h>
 #include_next <sys/socket.h>
 
+#ifndef SHUT_RD
+#define SHUT_RD    0
+#define SHUT_WR    1
+#define SHUT_RDWR  2
+#endif
+
 #ifndef COMPAT_IRIX_65
 typedef unsigned short sa_family_t;
 

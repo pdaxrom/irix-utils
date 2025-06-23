@@ -18,7 +18,7 @@ ifeq (6.5,$(IRIX_VERSION))
 else
 endif
 
-OBJS = compat_wchar.o snprintf.o getopt_long.o inet.o strto.o setenv.o strndup.o memmem.o netdb.o
+OBJS = compat_wchar.o snprintf.o getopt_long.o inet.o strto.o strlcpy.o strcasestr.o setenv.o strndup.o memmem.o netdb.o mkdtemp.o
 
 $(TARGET): compat_config.h $(OBJS)
 	$(CC) -shared -o $@ $^ -lm
@@ -39,7 +39,7 @@ install: all
 	mkdir -p $(PREFIX)/include/arpa $(PREFIX)/include/sys  $(LIBDIR)
 	cp -f wchar.h compat_snprintf.h getopt_long.h getopt.h stdbool.h \
 	    stdio.h complex.h netdb.h resolv.h compat_config.h $(PREFIX)/include
-	cp  compat_strto.h stdlib.h inttypes.h string.h $(PREFIX)/include
+	cp  compat_strto.h stdlib.h inttypes.h string.h stddef.h $(PREFIX)/include
 	cp -f inet.h $(PREFIX)/include/arpa
 	cp -f types.h socket.h $(PREFIX)/include/sys
 	cp -f $(LIBNAME)$(STATIC_SUFFIX) $(LIBDIR)/

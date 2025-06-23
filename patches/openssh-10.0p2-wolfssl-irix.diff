@@ -1,0 +1,36 @@
+--- a/log.c-	2025-06-22 07:14:02.548077126 +0000
++++ b/log.c	2025-06-22 07:17:12.907061326 +0000
+@@ -193,6 +193,25 @@
+ }
+ 
+ #ifdef WC_RNG_SEED_CB
++#ifdef sgi
++#include <time.h>
++#include <stdlib.h>
++static int wolf_seed(OS_Seed* os, byte* output, word32 sz)
++{
++    (void)os;
++    size_t i;
++    srand(clock());
++
++    for (i = 0; i < sz; i++ ) {
++        output[i] = rand() % 256;
++        if ((i % 8) == 7) {
++            srand(clock());
++        }
++    }
++
++    return 0;
++}
++#else
+ #include <sys/random.h>
+ static int wolf_seed(OS_Seed* os, byte* output, word32 sz)
+ {
+@@ -221,6 +240,7 @@
+     return ret;
+ }
+ #endif
++#endif
+ 
+ /*
+  * Initialize the log.

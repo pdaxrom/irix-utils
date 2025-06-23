@@ -57,3 +57,28 @@ int compat_setenv(const char *name, const char *value, int overwrite)
 
     return 0;
 }
+
+int compat_unsetenv(const char *name)
+{
+    if (!name || strchr(name, '=') != NULL || *name == '\0')
+        return -1;
+
+    size_t len = strlen(name);
+    extern char **environ;
+    char **env = environ;
+
+    while (*env) {
+        if (strncmp(*env, name, len) == 0 && (*env)[len] == '=') {
+            char **shift = env;
+            do {
+                shift[0] = shift[1];
+                shift++;
+            } while (*shift);
+            // Do not increment env, recheck same index
+        } else {
+            env++;
+        }
+    }
+
+    return 0;
+}

@@ -25,8 +25,8 @@ LIBDIR_PREFIX=${INST_PREFIX}/lib${LIBDIR_SUFFIX}
 
 export PKG_CONFIG_PATH=${LIBDIR_PREFIX}/pkgconfig
 
-mkdir -p ../build-tmp
-cd ../build-tmp
+mkdir -p tmp
+cd tmp
 
 export HOST_PREFIX=${PWD}/host
 mkdir -p $HOST_PREFIX
@@ -192,6 +192,24 @@ if ! test -e lzop.installed; then
 
     popd
     touch lzop.installed
+fi
+
+LIBEXPAT_VERSION=2.7.1
+if ! test -e libexpat.installed; then
+    download https://github.com/libexpat/libexpat/releases/download/R_2_7_1/expat-${LIBEXPAT_VERSION}.tar.xz
+    tar xvf expat-${LIBEXPAT_VERSION}.tar.xz
+    pushd expat-${LIBEXPAT_VERSION}
+
+    mkdir -p build
+    cd build
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
+
+    make -j $MAKE_TASKS
+
+    make install
+
+    popd
+    touch libexpat.installed
 fi
 
 if ! test -e native-gettext.installed; then
@@ -476,7 +494,7 @@ if ! test -e wolfssl.installed; then
     cd b
     cp -f ${TOPDIR}/caches-single/wolf.cache .
 
-    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --enable-opensslall --enable-opensslextra CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include -DWOLFSSL_IRIX -DNO_INT128" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=wolf.cache
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --enable-openssh --enable-32bit --enable-kcapi=no CPPFLAGS="-std=gnu11 -I${INST_PREFIX}/include -DWOLFSSL_IRIX -DNO_INT128 -DWC_RNG_SEED_CB" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=wolf.cache
 
     make -j $MAKE_TASKS
 
@@ -508,12 +526,16 @@ if ! test -e curl.installed; then
     touch curl.installed
 fi
 
-SSH_VERSION=9.9p2
+SSH_VERSION=10.0p2
 if ! test -e openssh.installed; then
-    download https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-9.9p2.tar.gz
-    tar xf openssh-9.9p2.tar.gz
-    pushd openssh-9.9p2
-    patch -p1 < ${TOPDIR}/patches/openssh-9.9p2-irix.diff
+    download https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-${SSH_VERSION}.tar.gz
+    tar xf openssh-${SSH_VERSION}.tar.gz
+    pushd openssh-10.0p1
+    patch -p1 < ${TOPDIR}/patches/openssh-${SSH_VERSION}-irix.diff
+    patch -p1 < ${TOPDIR}/patches/openssh-${SSH_VERSION}.patch
+    patch -p1 < ${TOPDIR}/patches/openssh-${SSH_VERSION}-wolfssl-irix.diff
+    autoreconf
+
     mkdir -p buildx
     cd buildx
 
@@ -527,7 +549,7 @@ ac_cv_func___b64_ntop=${ac_cv_func___b64_ntop=no}
 ac_cv_func___b64_pton=${ac_cv_func___b64_pton=no}
 EOF
 
-    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --sysconfdir=${INST_PREFIX}/etc/ssh --without-openssl --disable-strip --with-xauth=/usr/bin/X11/xauth --x-includes="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include" --x-libraries="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-implicit-int -std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=openssh.cache
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --sysconfdir=${INST_PREFIX}/etc/ssh --with-wolfssl=$INST_PREFIX --disable-strip --with-xauth=/usr/bin/X11/xauth --x-includes="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include" --x-libraries="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-implicit-int -std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=openssh.cache
 
     make -j $MAKE_TASKS
 
@@ -548,7 +570,7 @@ if ! test -e zip.installed; then
     tar xf zip${ZIP_VERSION}.tar.gz
     pushd zip${ZIP_VERSION}
 
-    make -f unix/Makefile generic CC="${CROSS_PREFIX}-gcc -std=gnu89"
+    make -j $MAKE_TASKS -f unix/Makefile generic CC="${CROSS_PREFIX}-gcc -std=gnu89"
 
     make prefix=$INST_PREFIX MANDIR=${INST_PREFIX}/share/man/man1 -f unix/Makefile install
 
@@ -562,12 +584,63 @@ if ! test -e unzip.installed; then
     tar xf unzip${UNZIP_VERSION}.tar.gz
     pushd unzip${UNZIP_VERSION}
 
-    make -f unix/Makefile generic CC="${CROSS_PREFIX}-gcc -std=gnu89"
+    make -j $MAKE_TASKS -f unix/Makefile generic CC="${CROSS_PREFIX}-gcc -std=gnu89"
 
     make prefix=$INST_PREFIX MANDIR=${INST_PREFIX}/share/man/man1 -f unix/Makefile install
 
     popd
     touch unzip.installed
+fi
+
+GIT_VERSION=2.35.1
+if ! test -e git.installed; then
+    download https://www.kernel.org/pub/software/scm/git/git-${GIT_VERSION}.tar.xz
+    tar xf git-${GIT_VERSION}.tar.xz
+    pushd git-${GIT_VERSION}
+    patch -p1 < ${TOPDIR}/patches/git-${GIT_VERSION}.patch
+
+#    mkdir b
+#    cd b
+
+#    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=git.cache
+
+    make -j $MAKE_TASKS \
+        CC=${CROSS_PREFIX}-gcc AR=${CROSS_PREFIX}-ar STRIP=${CROSS_PREFIX}-strip \
+        USE_WOLFSSL=1 \
+        OPENSSL_SHA1=1 \
+        OPENSSL_SHA256=1 \
+        WOLFSSSLDIR=$INST_PREFIX \
+        NO_IPV6=y \
+        HAVE_GETDELIM="" \
+        NO_PTHREADS=1 \
+        HAVE_CLOCK_MONOTONIC="" \
+        NEEDS_LIBRT="" \
+        NO_GETTEXT=1 \
+        NEEDS_LIBGEN=1 \
+        CURL_LDFLAGS="-L$LIBDIR_PREFIX -lcurl" \
+        HOME=$INST_PREFIX \
+        COMPAT_CFLAGS="-std=gnu99 -I${INST_PREFIX}/include -DDISABLE_COMPAT_GETOPT_LONG -UHAVE_SYSINFO"
+
+    make -j $MAKE_TASKS \
+        CC=${CROSS_PREFIX}-gcc AR=${CROSS_PREFIX}-ar STRIP=${CROSS_PREFIX}-strip \
+        USE_WOLFSSL=1 \
+        OPENSSL_SHA1=1 \
+        OPENSSL_SHA256=1 \
+        WOLFSSSLDIR=$INST_PREFIX \
+        NO_IPV6=y \
+        HAVE_GETDELIM="" \
+        NO_PTHREADS=1 \
+        HAVE_CLOCK_MONOTONIC="" \
+        NEEDS_LIBRT="" \
+        NO_GETTEXT=1 \
+        NEEDS_LIBGEN=1 \
+        CURL_LDFLAGS="-L$LIBDIR_PREFIX -lcurl" \
+        HOME=$INST_PREFIX \
+        COMPAT_CFLAGS="-std=gnu99 -I${INST_PREFIX}/include -DDISABLE_COMPAT_GETOPT_LONG -UHAVE_SYSINFO" \
+        install
+
+    popd
+    touch git.installed
 fi
 
 exit 0
