@@ -145,3 +145,15 @@ diff -Nur openssh-9.9p2/sshkey.c openssh-9.9p2-irix/sshkey.c
  }
  
  static void
+--- openssh-10.0p1/cipher-aesctr.h-	2025-06-24 09:07:30.333796346 +0000
++++ openssh-10.0p1/cipher-aesctr.h	2025-06-24 09:07:54.758771460 +0000
+@@ -20,7 +20,9 @@
+ 
+ #include "rijndael.h"
+ 
++#ifndef AES_BLOCK_SIZE
+ #define AES_BLOCK_SIZE 16
++#endif
+ 
+ typedef struct aesctr_ctx {
+ 	int	rounds;				/* keylen-dependent #rounds */

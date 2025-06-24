@@ -49,19 +49,6 @@ index 4617cebcd..03fba6469 100644
  		OBJ="$(BUILDDIR)/regress" \
  		PATH="$(BUILDDIR):$${PATH}" \
  		TEST_ENV=MALLOC_OPTIONS="@TEST_MALLOC_OPTIONS@" \
-diff --git a/cipher-aesctr.h b/cipher-aesctr.h
-index 85d55bba2..d12d7802d 100644
---- a/cipher-aesctr.h
-+++ b/cipher-aesctr.h
-@@ -20,8 +20,6 @@
- 
- #include "rijndael.h"
- 
--#define AES_BLOCK_SIZE 16
--
- typedef struct aesctr_ctx {
- 	int	rounds;				/* keylen-dependent #rounds */
- 	u32	ek[4*(AES_MAXROUNDS + 1)];	/* encrypt key schedule */
 diff --git a/cipher.c b/cipher.c
 index 8a18da2df..9d9ab7656 100644
 --- a/cipher.c

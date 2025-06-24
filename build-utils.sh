@@ -549,7 +549,8 @@ ac_cv_func___b64_ntop=${ac_cv_func___b64_ntop=no}
 ac_cv_func___b64_pton=${ac_cv_func___b64_pton=no}
 EOF
 
-    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --sysconfdir=${INST_PREFIX}/etc/ssh --with-wolfssl=$INST_PREFIX --disable-strip --with-xauth=/usr/bin/X11/xauth --x-includes="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include" --x-libraries="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-implicit-int -std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=openssh.cache
+#    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --sysconfdir=${INST_PREFIX}/etc/ssh --with-wolfssl=$INST_PREFIX --disable-strip --with-xauth=/usr/bin/X11/xauth --x-includes="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include" --x-libraries="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-implicit-int -std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=openssh.cache
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --sysconfdir=${INST_PREFIX}/etc/ssh --without-openssl --disable-strip --with-xauth=/usr/bin/X11/xauth --x-includes="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include" --x-libraries="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-implicit-int -std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=openssh.cache
 
     make -j $MAKE_TASKS
 
