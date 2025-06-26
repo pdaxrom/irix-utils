@@ -10,7 +10,7 @@
 +    #include <stdlib.h>
 +    int wc_GenerateSeed(OS_Seed* os, byte* output, word32 sz)
 +    {
-+        int i;
++        word32 i;
 +        srand(clock());
 +
 +        for (i = 0; i < sz; i++ ) {
@@ -26,3 +26,14 @@
  #elif defined(ARDUINO)
  
      int wc_GenerateSeed(OS_Seed* os, byte* output, word32 sz)
+--- wolfssl-5.8.0-stable/configure.ac	2025-04-24 22:10:41.000000000 +0000
++++ wolfssl-5.8.0-stable-irix/configure.ac	2025-06-25 15:17:41.129167258 +0000
+@@ -130,7 +130,7 @@
+ # they're declared by the expected headers, and if not, supersede the
+ # unusable positive from AC_CHECK_FUNCS().
+ AC_CHECK_FUNCS([gethostbyname getaddrinfo gettimeofday gmtime_r gmtime_s inet_ntoa memset socket strftime atexit isascii])
+-AC_CHECK_DECLS([gethostbyname, getaddrinfo, gettimeofday, gmtime_r, gmtime_s, inet_ntoa, memset, socket, strftime, atexit, isascii], [], [
++AC_CHECK_DECLS([gmtime_s], [], [
+ if test "$(eval echo \$"$(eval 'echo ac_cv_func_${as_decl_name}')")" = "yes"
+ then
+     AC_MSG_NOTICE([    note: earlier check for $(eval 'echo ${as_decl_name}') superseded.])

@@ -105,8 +105,8 @@ if ! test -e bzip2.installed; then
     pushd bzip2-${BZIP2_VERSION}
     test ${TOPDIR}/patches/bzip2-${BZIP2_VERSION}-irix.diff && patch -p1 < ${TOPDIR}/patches/bzip2-${BZIP2_VERSION}-irix.diff
 
-    make CC="${CROSS_PREFIX}-gcc -std=gnu99" AR=${CROSS_PREFIX}-ar RANLIB=${CROSS_PREFIX}-ranlib PREFIX=$INST_PREFIX LIBDIR=$LIBDIR_PREFIX libbz2.a bzip2 bzip2recover || error "build bzip2"
-    make CC="${CROSS_PREFIX}-gcc -std=gnu99" AR=${CROSS_PREFIX}-ar RANLIB=${CROSS_PREFIX}-ranlib PREFIX=$INST_PREFIX LIBDIR=$LIBDIR_PREFIX install || error "install bzip2"
+    make CC="${CROSS_PREFIX}-gcc -std=gnu99" AR=${CROSS_PREFIX}-ar RANLIB=${CROSS_PREFIX}-ranlib PREFIX=$INST_PREFIX LIBDIR=/lib${LIBDIR_SUFFIX} libbz2.a bzip2 bzip2recover || error "build bzip2"
+    make CC="${CROSS_PREFIX}-gcc -std=gnu99" AR=${CROSS_PREFIX}-ar RANLIB=${CROSS_PREFIX}-ranlib PREFIX=$INST_PREFIX LIBDIR=/lib${LIBDIR_SUFFIX} install || error "install bzip2"
 
     make CC="${CROSS_PREFIX}-gcc -std=gnu99" AR=${CROSS_PREFIX}-ar RANLIB=${CROSS_PREFIX}-ranlib PREFIX=$INST_PREFIX LIBDIR=$LIBDIR_PREFIX -f Makefile-libbz2_so || error "build bzip2"
     cp -f libbz2.so.${BZIP2_VERSION} ${LIBDIR_PREFIX}
@@ -484,6 +484,28 @@ if ! test -e grep.installed; then
     touch grep.installed
 fi
 
+LIBRESSL_VERSION=4.1.0
+if ! test -e libressl.installed; then
+    download https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-${LIBRESSL_VERSION}.tar.gz
+    tar xf libressl-${LIBRESSL_VERSION}.tar.gz
+    pushd libressl-${LIBRESSL_VERSION}
+    patch -p1 < ${TOPDIR}/patches/libressl-4.1.0-irix.diff
+    autoreconf -i
+
+    mkdir -p build
+    cd build
+
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --disable-hardening CPPFLAGS="-std=gnu99 -Wno-implicit-function-declaration -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
+
+    make -j $MAKE_TASKS
+
+    make install
+
+    popd
+    touch libressl.installed
+fi
+
+if false; then
 if ! test -e wolfssl.installed; then
     download https://github.com/wolfSSL/wolfssl/archive/refs/tags/v5.8.0-stable.tar.gz
     tar xf v5.8.0-stable.tar.gz
@@ -492,9 +514,10 @@ if ! test -e wolfssl.installed; then
     ./autogen.sh
     mkdir -p b
     cd b
-    cp -f ${TOPDIR}/caches-single/wolf.cache .
+    cp -f ${TOPDIR}/caches-single/wolfssl.cache .
 
-    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --enable-openssh --enable-32bit --enable-kcapi=no CPPFLAGS="-std=gnu11 -I${INST_PREFIX}/include -DWOLFSSL_IRIX -DNO_INT128 -DWC_RNG_SEED_CB" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=wolf.cache
+#    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --enable-openssh --enable-32bit --enable-kcapi=no CPPFLAGS="-std=gnu11 -I${INST_PREFIX}/include -DWOLFSSL_IRIX -DNO_INT128 -DWC_RNG_SEED_CB" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=wolf.cache
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --enable-openssh --enable-32bit --enable-kcapi=no CPPFLAGS="-std=gnu11 -I${INST_PREFIX}/include -DWOLFSSL_IRIX -DNO_INT128 -DWC_RNG_SEED_CB" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=wolfssl.cache
 
     make -j $MAKE_TASKS
 
@@ -502,6 +525,45 @@ if ! test -e wolfssl.installed; then
 
     popd
     touch wolfssl.installed
+fi
+fi
+
+PCRE2_VERSION=10.45
+if ! test -e pcre2.installed; then
+    download https://github.com/PCRE2Project/pcre2/releases/download/pcre2-${PCRE2_VERSION}/pcre2-${PCRE2_VERSION}.tar.bz2
+    tar xf pcre2-${PCRE2_VERSION}.tar.bz2
+    pushd pcre2-${PCRE2_VERSION}
+#    patch -p1 < ${TOPDIR}/patches/pcre2-${PCRE2_VERSION}-irix.diff
+    mkdir -p build
+    cd build
+
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=pcre2.cache
+
+    make -j $MAKE_TASKS
+
+    make install
+
+    popd
+    touch pcre2.installed
+fi
+
+LIBPSL_VERSION=0.21.5
+if ! test -e libpsl.installed; then
+    download https://github.com/rockdaboot/libpsl/releases/download/${LIBPSL_VERSION}/libpsl-${LIBPSL_VERSION}.tar.gz
+    tar xf libpsl-${LIBPSL_VERSION}.tar.gz
+    pushd libpsl-${LIBPSL_VERSION}
+    patch -p1 < ${TOPDIR}/patches/libpsl-0.21.5-irix.diff
+    mkdir -p b
+    cd b
+
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=libpsl.cache
+
+    make -j $MAKE_TASKS
+
+    make install
+
+    popd
+    touch libpsl.installed
 fi
 
 if ! test -e curl.installed; then
@@ -513,10 +575,12 @@ if ! test -e curl.installed; then
     mkdir -p b
     cd b
 
-    mkdir -p ${INST_PREFIX}/etc
-    test -e ${INST_PREFIX}/etc/cacert.pem || wget https://curl.se/ca/cacert.pem -O ${INST_PREFIX}/etc/cacert.pem
+#    mkdir -p ${INST_PREFIX}/etc
+#    test -e ${INST_PREFIX}/etc/cacert.pem || wget https://curl.se/ca/cacert.pem -O ${INST_PREFIX}/etc/cacert.pem
 
-    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --with-wolfssl --without-libpsl --with-ca-embed=${INST_PREFIX}/etc/cacert.pem CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="-L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" LIBS="${COMPAT_IRIX_LIB} -lpthread"
+#    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --with-wolfssl --without-libpsl --with-ca-embed=${INST_PREFIX}/etc/cacert.pem CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="-L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" LIBS="${COMPAT_IRIX_LIB} -lpthread"
+#    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --with-openssl=$INST_PREFIX --without-libpsl --with-ca-embed=${INST_PREFIX}/etc/cacert.pem CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="-L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" LIBS="${COMPAT_IRIX_LIB} -lpthread"
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --with-openssl=$INST_PREFIX CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="-L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" LIBS="${COMPAT_IRIX_LIB} -lpthread"
 
     make -j $MAKE_TASKS
 
@@ -526,14 +590,33 @@ if ! test -e curl.installed; then
     touch curl.installed
 fi
 
+WGET_VERSION=1.25.0
+if ! test -e wget.installed; then
+    download https://mirrors.ibiblio.org/gnu/wget/wget-${WGET_VERSION}.tar.gz
+    tar xf wget-${WGET_VERSION}.tar.gz
+    pushd wget-${WGET_VERSION}
+    patch -p1 < ${TOPDIR}/patches/wget-1.25.0-irix.diff
+    mkdir -p b
+    cd b
+
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --disable-threads --with-ssl=openssl --with-libssl-prefix=$INST_PREFIX CPPFLAGS="-std=gnu99 -Wno-implicit-function-declaration -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
+
+    make -j $MAKE_TASKS
+
+    make install
+
+    popd
+    touch wget.installed
+fi
+
 SSH_VERSION=10.0p2
 if ! test -e openssh.installed; then
     download https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-${SSH_VERSION}.tar.gz
     tar xf openssh-${SSH_VERSION}.tar.gz
     pushd openssh-10.0p1
     patch -p1 < ${TOPDIR}/patches/openssh-${SSH_VERSION}-irix.diff
-    patch -p1 < ${TOPDIR}/patches/openssh-${SSH_VERSION}.patch
-    patch -p1 < ${TOPDIR}/patches/openssh-${SSH_VERSION}-wolfssl-irix.diff
+#    patch -p1 < ${TOPDIR}/patches/openssh-${SSH_VERSION}.patch
+#    patch -p1 < ${TOPDIR}/patches/openssh-${SSH_VERSION}-wolfssl-irix.diff
     autoreconf
 
     mkdir -p buildx
@@ -552,7 +635,8 @@ if ! test -e openssh.installed; then
     cp -f ${TOPDIR}/caches-single/openssh.cache .
 
 #    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --sysconfdir=${INST_PREFIX}/etc/ssh --with-wolfssl=$INST_PREFIX --disable-strip --with-xauth=/usr/bin/X11/xauth --x-includes="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include" --x-libraries="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-implicit-int -std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=openssh.cache
-    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --sysconfdir=${INST_PREFIX}/etc/ssh --without-openssl --disable-strip --with-xauth=/usr/bin/X11/xauth --x-includes="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include" --x-libraries="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-implicit-int -std=gnu99 -I$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include -I${INST_PREFIX}/include" LDFLAGS="-L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=openssh.cache
+#    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --sysconfdir=${INST_PREFIX}/etc/ssh --with-ssl-dir=$INST_PREFIX --disable-strip --with-xauth=/usr/bin/X11/xauth --x-includes="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include" --x-libraries="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-implicit-int -std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="-L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=openssh.cache
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --sysconfdir=${INST_PREFIX}/etc/ssh --without-openssl --disable-strip --with-xauth=/usr/bin/X11/xauth --x-includes="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include" --x-libraries="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-implicit-int -std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="-L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=openssh.cache
 
     make -j $MAKE_TASKS
 
@@ -600,7 +684,7 @@ if ! test -e git.installed; then
     download https://www.kernel.org/pub/software/scm/git/git-${GIT_VERSION}.tar.xz
     tar xf git-${GIT_VERSION}.tar.xz
     pushd git-${GIT_VERSION}
-    patch -p1 < ${TOPDIR}/patches/git-${GIT_VERSION}.patch
+#    patch -p1 < ${TOPDIR}/patches/git-${GIT_VERSION}.patch
 
 #    mkdir b
 #    cd b
@@ -612,7 +696,7 @@ if ! test -e git.installed; then
         USE_WOLFSSL=1 \
         OPENSSL_SHA1=1 \
         OPENSSL_SHA256=1 \
-        WOLFSSSLDIR=$INST_PREFIX \
+        OPENSSLDIR=$INST_PREFIX \
         NO_IPV6=y \
         HAVE_GETDELIM="" \
         NO_PTHREADS=1 \
@@ -629,7 +713,7 @@ if ! test -e git.installed; then
         USE_WOLFSSL=1 \
         OPENSSL_SHA1=1 \
         OPENSSL_SHA256=1 \
-        WOLFSSSLDIR=$INST_PREFIX \
+        OPENSSLDIR=$INST_PREFIX \
         NO_IPV6=y \
         HAVE_GETDELIM="" \
         NO_PTHREADS=1 \

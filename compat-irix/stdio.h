@@ -4,7 +4,13 @@
 #include <compat_config.h>
 
 #include <sys/types.h>
+
+#pragma push_macro("COMPAT_GETOPT_H")
+#undef COMPAT_GETOPT_H
+#define COMPAT_GETOPT_H 1
 #include_next <stdio.h>
+#pragma pop_macro("COMPAT_GETOPT_H")
+
 #include <compat_snprintf.h>
 
 #ifndef COMPAT_IRIX_65
