@@ -70,14 +70,16 @@ build_readline
 build_bash
 build_pkg_config
 build_pcre
+build_native_libffi
 build_native_glib2
+build_libffi
+build_pcre2
 build_glib2
 build_mc
 build_make
 build_grep
 build_libressl
 #build_wolfssl
-build_pcre2
 build_libpsl
 build_curl
 build_wget
