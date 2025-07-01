@@ -1,0 +1,120 @@
+diff -Nur mc-4.8.14/lib/strutil/strutil8bit.c mc-4.8.14-irix/lib/strutil/strutil8bit.c
+--- mc-4.8.14/lib/strutil/strutil8bit.c	2015-03-20 18:06:04.000000000 +0000
++++ mc-4.8.14-irix/lib/strutil/strutil8bit.c	2025-06-30 16:16:39.427533039 +0000
+@@ -31,6 +31,10 @@
+ #include "lib/global.h"
+ #include "lib/strutil.h"
+ 
++#ifndef isblank
++#define isblank(c) ((c) == ' ' || (c) == '\t')
++#endif
++
+ /* functions for singlebyte encodings, all characters have width 1
+  * using standard system functions
+  * there are only small differences between functions in strutil8bit.c 
+diff -Nur mc-4.8.14/lib/tty/tty-ncurses.c mc-4.8.14-irix/lib/tty/tty-ncurses.c
+--- mc-4.8.14/lib/tty/tty-ncurses.c	2015-03-20 18:06:04.000000000 +0000
++++ mc-4.8.14-irix/lib/tty/tty-ncurses.c	2025-06-30 16:16:39.427533039 +0000
+@@ -194,11 +194,21 @@
+     ESCDELAY = 200;
+ #endif /* HAVE_ESCDELAY */
+ 
++    struct termios tty;
++    tcgetattr(STDIN_FILENO, &tty);  // Get current terminal settings
++
++    tty.c_cc[VINTR] = CTRL ('g');   /* ^g */
++    /* disable SIGQUIT to allow use Ctrl-\ key */
++    tty.c_cc[VQUIT] = NULL_VALUE;
++    tcsetattr (STDIN_FILENO, TCSANOW, &tty);
++
++#if 0
+     /* use Ctrl-g to generate SIGINT */
+     cur_term->Nttyb.c_cc[VINTR] = CTRL ('g');   /* ^g */
+     /* disable SIGQUIT to allow use Ctrl-\ key */
+     cur_term->Nttyb.c_cc[VQUIT] = NULL_VALUE;
+-    tcsetattr (cur_term->Filedes, TCSANOW, &cur_term->Nttyb);
++    tcsetattr (cur_term->Filedes, TCSANOW, (const struct termios *)&cur_term->Nttyb);
++#endif
+ 
+     tty_start_interrupt_key ();
+ 
+diff -Nur mc-4.8.14/lib/vfs/parse_ls_vga.c mc-4.8.14-irix/lib/vfs/parse_ls_vga.c
+--- mc-4.8.14/lib/vfs/parse_ls_vga.c	2015-03-20 18:06:04.000000000 +0000
++++ mc-4.8.14-irix/lib/vfs/parse_ls_vga.c	2025-06-30 16:16:39.427533039 +0000
+@@ -39,6 +39,9 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ 
++#include <sys/types.h>
++#include <sys/mkdev.h>
++
+ #include "lib/global.h"
+ #include "lib/unixcompat.h"     /* makedev */
+ #include "lib/widget.h"         /* message() */
+diff -Nur mc-4.8.14/src/filemanager/find.c mc-4.8.14-irix/src/filemanager/find.c
+--- mc-4.8.14/src/filemanager/find.c	2015-03-20 18:06:04.000000000 +0000
++++ mc-4.8.14-irix/src/filemanager/find.c	2025-06-30 16:22:19.761831376 +0000
+@@ -909,6 +909,10 @@
+  *         TRUE if do_search should exit and proceed to the event handler
+  */
+ 
++#ifdef sgi
++typedef long suseconds_t;
++#endif
++
+ static gboolean
+ search_content (WDialog * h, const char *directory, const char *filename)
+ {
+diff -Nur mc-4.8.14/src/vfs/ftpfs/ftpfs.c mc-4.8.14-irix/src/vfs/ftpfs/ftpfs.c
+--- mc-4.8.14/src/vfs/ftpfs/ftpfs.c	2015-03-20 18:06:04.000000000 +0000
++++ mc-4.8.14-irix/src/vfs/ftpfs/ftpfs.c	2025-06-30 16:16:39.427533039 +0000
+@@ -188,6 +188,8 @@
+ typedef int socklen_t;
+ #endif
+ 
++#include <netdb.h>
++
+ /* This should match the keywords[] array below */
+ typedef enum
+ {
+@@ -1142,9 +1144,9 @@
+     case AF_INET:
+         ((struct sockaddr_in *) sa)->sin_port = port;
+         break;
+-    case AF_INET6:
+-        ((struct sockaddr_in6 *) sa)->sin6_port = port;
+-        break;
++//    case AF_INET6:
++//        ((struct sockaddr_in6 *) sa)->sin6_port = port;
++//        break;
+     }
+ 
+     return (connect (my_socket, (struct sockaddr *) sa, *salen) < 0) ? 0 : 1;
+@@ -1192,10 +1194,10 @@
+         af = FTP_INET;
+         port = ((struct sockaddr_in *) &data_addr)->sin_port;
+         break;
+-    case AF_INET6:
+-        af = FTP_INET6;
+-        port = ((struct sockaddr_in6 *) &data_addr)->sin6_port;
+-        break;
++//    case AF_INET6:
++//        af = FTP_INET6;
++//        port = ((struct sockaddr_in6 *) &data_addr)->sin6_port;
++//        break;
+         /* Not implemented */
+     default:
+         return 0;
+@@ -1272,9 +1274,9 @@
+     case AF_INET:
+         ((struct sockaddr_in *) data_addr)->sin_port = 0;
+         break;
+-    case AF_INET6:
+-        ((struct sockaddr_in6 *) data_addr)->sin6_port = 0;
+-        break;
++//    case AF_INET6:
++//        ((struct sockaddr_in6 *) data_addr)->sin6_port = 0;
++//        break;
+     default:
+         vfs_print_message (_("ftpfs: invalid address family"));
+         ERRNOR (EINVAL, -1);

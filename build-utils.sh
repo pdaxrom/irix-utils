@@ -70,6 +70,8 @@ build_readline
 build_bash
 build_pkg_config
 build_pcre
+build_native_file
+build_file
 build_native_libffi
 build_native_glib2
 build_libffi
