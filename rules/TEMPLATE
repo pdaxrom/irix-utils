@@ -6,7 +6,7 @@ build_@PKG_NAME@() {
     local PKG_URL="@PKG_URL@/${PKG}-${PKG_VERSION}.${PKG_EXT}"
     local PKG_DESC="@PKG_DESC@"
     local PKG_DEPS=""
-    local PKG_PATH="@PKG_PATCH@"
+    local PKG_PATCH="@PKG_PATCH@"
     if ! test -e @PKG_NAME@.installed; then
         download ${PKG_URL}
         tar xf ${PKG}-${PKG_VERSION}.${PKG_EXT}

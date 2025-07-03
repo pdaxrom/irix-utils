@@ -98,9 +98,9 @@ build_git
 #build_renderext
 #build_xrender
 #build_atk
-#build_libjpeg
-#build_libpng
-#build_libtiff
+build_libjpeg
+build_libpng
+build_libtiff
 ##build_hardbuzz
 #build_freetype
 #build_libxml2
@@ -111,65 +111,4 @@ build_git
 #build_gtk2
 #build_imlib2
 #build_feh
-
-exit 0
-
-if false; then
-if ! test -e libffi.installed; then
-    download https://github.com/libffi/libffi/releases/download/v3.4.8/libffi-3.4.8.tar.gz
-    tar xf libffi-3.4.8.tar.gz
-    pushd libffi-3.4.8
-    mkdir -p build
-    cd build
-
-    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="-L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
-
-    make -j $MAKE_TASKS
-
-    make install
-
-    popd
-    touch libffi.installed
-fi
-fi
-
-if false; then
-if ! test -e pcre2.installed; then
-    download https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.45/pcre2-10.45.tar.bz2
-    tar xf pcre2-10.45.tar.bz2
-    pushd pcre2-10.45
-    patch -p1 < ${TOPDIR}/patches/pcre2-10.45-irix.diff
-    mkdir build
-    cd build
-
-    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
-
-    make -j $MAKE_TASKS
-
-    make install
-
-
-    popd
-    touch pcre2.installed
-fi
-fi
-
-if false; then
-XEXTENSIONS_VERSION=1.0.1
-if ! test -e xextensions.installed; then
-    download https://xlibs.freedesktop.org/release/xextensions-${XEXTENSIONS_VERSION}.tar.bz2
-    tar xf xextensions-${XEXTENSIONS_VERSION}.tar.bz2
-    pushd xextensions-${XEXTENSIONS_VERSION}
-    mkdir -p buildx
-    cd buildx
-
-    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --x-includes="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include" --x-libraries="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/lib" CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}"
-
-    make -j $MAKE_TASKS
-
-    make install
-
-    popd
-    touch xextensions.installed
-fi
-fi
+build_xli

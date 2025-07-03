@@ -1,0 +1,15 @@
+diff -Nur xli-1.17.0/rlelib.c xli-1.17.0-irix/rlelib.c
+--- xli-1.17.0/rlelib.c	1999-10-25 02:15:03.000000000 +0000
++++ xli-1.17.0-irix/rlelib.c	2025-07-03 08:05:24.003683308 +0000
+@@ -12,7 +12,11 @@
+  */
+ 
+ #include "xli.h"
++#if defined(sgi) && defined(__GNUC__)
++#include <stdarg.h>
++#else
+ #include <varargs.h>
++#endif
+ #include <ctype.h>
+ #include "rle.h"
+ 
