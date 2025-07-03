@@ -9,7 +9,7 @@ if ! test -e git.installed; then
 #    mkdir b
 #    cd b
 
-#    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=git.cache
+#    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX}" --cache-file=git.cache
 
     make -j $MAKE_TASKS \
         CC=${CROSS_PREFIX}-gcc AR=${CROSS_PREFIX}-ar STRIP=${CROSS_PREFIX}-strip \

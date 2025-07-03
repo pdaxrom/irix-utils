@@ -7,7 +7,7 @@ if ! test -e ncurses.installed; then
     mkdir -p build
     cd build
     cp -f ${TOPDIR}/caches/ncurses.cache .
-    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --with-shared --with-cxx-shared --disable-widec --disable-stripping  CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=ncurses.cache
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --with-shared --with-cxx-shared --disable-widec --disable-stripping  CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX}" --cache-file=ncurses.cache
 
     make -j $MAKE_TASKS
 
@@ -17,7 +17,7 @@ if ! test -e ncurses.installed; then
     mkdir -p build-multi
     cd build-multi
 #    cp -f ${TOPDIR}/caches/ncurses.cache .
-    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --with-shared --with-cxx-shared --disable-stripping  CPPFLAGS="-std=gnu99 -D_WCHAR_CORE_EXTENSIONS_1 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=ncurses.cache
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --with-shared --with-cxx-shared --disable-stripping  CPPFLAGS="-std=gnu99 -D_WCHAR_CORE_EXTENSIONS_1 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX}" --cache-file=ncurses.cache
 
     make -j $MAKE_TASKS
 

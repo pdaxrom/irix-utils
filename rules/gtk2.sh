@@ -18,7 +18,7 @@ if ! test -e gtk2.installed; then
     ac_cv_func_posix_getpwuid_r=no \
     ac_cv_func_posix_getgrgid_r=no \
     gio_can_sniff=yes \
-    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --disable-visibility --without-libjasper --x-includes="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include" --x-libraries="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-incompatible-pointer-types -Wno-implicit-int -std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=glib2.cache
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --disable-visibility --without-libjasper --x-includes="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/include" --x-libraries="$(${CROSS_PREFIX}-gcc -print-sysroot)/usr/lib" CPPFLAGS="-Wno-incompatible-pointer-types -Wno-implicit-int -std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX}" --cache-file=glib2.cache
 
     make -j $MAKE_TASKS
 

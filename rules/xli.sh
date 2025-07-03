@@ -14,9 +14,9 @@ build_xli() {
             apply_patch ${PKG_PATCH}
 
             cp -f Makefile.std Makefile
-            make -j $MAKE_TASKS GCC=${CROSS_PREFIX}-gcc SYSPATHFILE=${LIBDIR_PREFIX}/X11/Xli INSTALLDIR=${INST_PREFIX}/bin GCCFLAGS="-O2 -std=gnu99 -fstrength-reduce -finline-functions -Wno-return-mismatch -Wno-implicit-function-declaration -Wno-implicit-int -Wno-incompatible-pointer-types -I${INST_PREFIX}/include -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX} -lpng -ljpeg -lz -lXext ${COMPAT_IRIX_LIB}" gcc
+            make -j $MAKE_TASKS GCC=${CROSS_PREFIX}-gcc SYSPATHFILE=${LIBDIR_PREFIX}/X11/Xli INSTALLDIR=${INST_PREFIX}/bin GCCFLAGS="-O2 -std=gnu99 -fstrength-reduce -finline-functions -Wno-return-mismatch -Wno-implicit-function-declaration -Wno-implicit-int -Wno-incompatible-pointer-types -I${INST_PREFIX}/include -L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX} -lpng -ljpeg -lz -lXext ${COMPAT_IRIX_LIB}" gcc
             mkdir -p ${LIBDIR_PREFIX}/X11
-            make -j $MAKE_TASKS GCC=${CROSS_PREFIX}-gcc SYSPATHFILE=${LIBDIR_PREFIX}/X11/Xli INSTALLDIR=${INST_PREFIX}/bin GCCFLAGS="-O2 -std=gnu99 -fstrength-reduce -finline-functions -Wno-return-mismatch -Wno-implicit-function-declaration -Wno-implicit-int -Wno-incompatible-pointer-types -I${INST_PREFIX}/include -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX} -lpng -ljpeg -lz -lXext ${COMPAT_IRIX_LIB}" install
+            make -j $MAKE_TASKS GCC=${CROSS_PREFIX}-gcc SYSPATHFILE=${LIBDIR_PREFIX}/X11/Xli INSTALLDIR=${INST_PREFIX}/bin GCCFLAGS="-O2 -std=gnu99 -fstrength-reduce -finline-functions -Wno-return-mismatch -Wno-implicit-function-declaration -Wno-implicit-int -Wno-incompatible-pointer-types -I${INST_PREFIX}/include -L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX} -lpng -ljpeg -lz -lXext ${COMPAT_IRIX_LIB}" install
         popd
         touch xli.installed
     fi

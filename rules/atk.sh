@@ -15,7 +15,7 @@ if ! test -e atk.installed; then
     ac_cv_func_nonposix_getgrgid_r=no \
     ac_cv_func_posix_getpwuid_r=no \
     ac_cv_func_posix_getgrgid_r=no \
-    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath-link,${LIBDIR_PREFIX}" --cache-file=glib2.cache
+    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX}" --cache-file=glib2.cache
 
     make -j $MAKE_TASKS
 
