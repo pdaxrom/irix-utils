@@ -7,6 +7,36 @@
 
 #ifndef COMPAT_IRIX_65
 
+/* Fallback definitions if not available */
+#ifndef AI_PASSIVE
+#define AI_PASSIVE     0x0001
+#endif
+#ifndef AI_CANONNAME
+#define AI_CANONNAME   0x0002
+#endif
+
+#ifndef AI_NUMERICHOST
+#define AI_NUMERICHOST 0x0004
+#endif
+#ifndef AI_ADDRCONFIG
+#define AI_ADDRCONFIG  0x0020
+#endif
+
+#ifndef NI_NUMERICHOST
+#define NI_NUMERICHOST 1
+#endif
+#ifndef NI_NUMERICSERV
+#define NI_NUMERICSERV 2
+#endif
+
+#ifndef NI_MAXHOST
+#define NI_MAXHOST 1025
+#endif
+#ifndef NI_MAXSERV
+#define NI_MAXSERV 32
+#endif
+
+#ifndef EAI_FAIL
 /* Error values for `getaddrinfo' function.  */
 # define EAI_BADFLAGS	  -1	/* Invalid value for `ai_flags' field.  */
 # define EAI_NONAME	  -2	/* NAME or SERVICE is unknown.  */
@@ -28,25 +58,14 @@
 #  define EAI_INTR	  -104	/* Interrupted by a signal.  */
 #  define EAI_IDN_ENCODE  -105	/* IDN encoding failed.  */
 # endif
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifndef HAVE_SOCKLEN_T
 typedef int socklen_t;
-#endif
-
-#ifndef NI_MAXHOST
-#define NI_MAXHOST 1025
-#endif
-
-#ifndef NI_MAXSERV
-#define NI_MAXSERV 32
-#endif
-
-#ifndef NI_NUMERICHOST
-#define NI_NUMERICHOST 1
-#endif
-
-#ifndef NI_NUMERICSERV
-#define NI_NUMERICSERV 2
 #endif
 
 struct addrinfo {
@@ -60,17 +79,21 @@ struct addrinfo {
     struct addrinfo *ai_next;
 };
 
+/* Function declarations */
 int getaddrinfo(const char *node, const char *service,
-                const struct addrinfo *hints,
-                struct addrinfo **res);
+                const struct addrinfo *hints, struct addrinfo **res);
 
 void freeaddrinfo(struct addrinfo *res);
 
 const char *gai_strerror(int errcode);
 
 int getnameinfo(const struct sockaddr *sa, socklen_t salen,
-                char *host, socklen_t hostlen,
-                char *serv, socklen_t servlen, int flags);
+                char *host, size_t hostlen,
+                char *serv, size_t servlen, int flags);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

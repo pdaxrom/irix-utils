@@ -55,8 +55,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <getopt.h>
 
 #include "getopt_long.h"
+
 
 #define PRINT_ERROR	((opterr) && (*options != ':'))
 

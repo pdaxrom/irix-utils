@@ -9,8 +9,8 @@
 # chmod 755 /etc/init.d/sshd
 # ln -s /etc/init.d/sshd /etc/rc0.d/K39sshd
 # ln -s /etc/init.d/sshd /etc/rc2.d/S50sshd
-# LD_LIBRARY_PATH=/opt/pdaxrom-ng/lib /opt/pdaxrom-ng/bin/ssh-keygen -t ed25519 -f /opt/pdaxrom-ng/etc/ssh/ssh_host_ed25519_key
-# mkdir -p /var/empty
+# LD_LIBRARY_PATH=/opt/pdaxrom-ng/lib /opt/pdaxrom-ng/bin/ssh-keygen -A
+# mkdir -p /var/empty /var/run
 # chkconfig -f sshd on
 
 IS_ON=/sbin/chkconfig

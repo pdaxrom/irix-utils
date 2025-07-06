@@ -1,0 +1,26 @@
+build_@PKG_NAME@() {
+    local PKG=@PKG_NAME@
+    local PKG_VERSION=@PKG_VERSION@
+    local PKG_EXT=@PKG_EXT@
+    local PKG_SUBVERSION=
+    local PKG_URL="@PKG_URL@/${PKG}-${PKG_VERSION}.${PKG_EXT}"
+    local PKG_DESC="@PKG_DESC@"
+    local PKG_DEPS=""
+    local PKG_PATCH="@PKG_PATCH@"
+    if ! test -e @PKG_NAME@.installed; then
+        download ${PKG_URL}
+        tar xf ${PKG}-${PKG_VERSION}.${PKG_EXT}
+        pushd ${PKG}-${PKG_VERSION}
+            apply_patch ${PKG_PATCH}
+
+            mkdir -p buildx
+            cd buildx
+            ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX}"
+
+            make -j $MAKE_TASKS
+
+            make install
+        popd
+        touch @PKG_NAME@.installed
+    fi
+}

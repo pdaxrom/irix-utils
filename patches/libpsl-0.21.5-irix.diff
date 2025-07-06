@@ -1,0 +1,31 @@
+diff -Nur libpsl-0.21.5/src/psl.c libpsl-0.21.5-irix/src/psl.c
+--- libpsl-0.21.5/src/psl.c	2024-01-13 19:08:10.000000000 +0000
++++ libpsl-0.21.5-irix/src/psl.c	2025-06-26 13:23:31.412267647 +0000
+@@ -44,6 +44,10 @@
+ #  define PSL_UNUSED
+ #endif
+ 
++#ifdef sgi
++#define NO_IPV6
++#endif
++
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ 
+@@ -1608,9 +1612,15 @@
+ 	       (WSAStringToAddressW(wName, AF_INET6, NULL, (struct sockaddr *)&addr6, &size6) != SOCKET_ERROR);
+ #else
+ 	struct in_addr addr;
++#ifndef NO_IPV6
+ 	struct in6_addr addr6;
++#endif
+ 
+-	return inet_pton(AF_INET, hostname, &addr) || inet_pton(AF_INET6, hostname, &addr6);
++	return inet_pton(AF_INET, hostname, &addr)
++#ifndef NO_IPV6
++	    || inet_pton(AF_INET6, hostname, &addr6)
++#endif
++	    ;
+ #endif
+ }
+ 

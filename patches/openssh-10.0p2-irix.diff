@@ -1,6 +1,6 @@
-diff -Nur openssh-9.9p2/Makefile.in openssh-9.9p2-irix/Makefile.in
---- openssh-9.9p2/Makefile.in	2025-02-18 08:15:08.000000000 +0000
-+++ openssh-9.9p2-irix/Makefile.in	2025-05-12 12:52:54.989616571 +0000
+diff -Nur openssh-10.0p2/Makefile.in openssh-10.0p2-irix/Makefile.in
+--- openssh-10.0p2/Makefile.in	2025-02-18 08:15:08.000000000 +0000
++++ openssh-10.0p2-irix/Makefile.in	2025-05-12 12:52:54.989616571 +0000
 @@ -393,7 +393,7 @@
  install-nosysconf: $(CONFIGFILES) $(MANPAGES) $(TARGETS) install-files
  
@@ -46,9 +46,9 @@ diff -Nur openssh-9.9p2/Makefile.in openssh-9.9p2-irix/Makefile.in
  
  uninstallall:	uninstall
  	-rm -f $(DESTDIR)$(sysconfdir)/ssh_config
-diff -Nur openssh-9.9p2/openbsd-compat/arc4random.h openssh-9.9p2-irix/openbsd-compat/arc4random.h
---- openssh-9.9p2/openbsd-compat/arc4random.h	2025-02-18 08:15:08.000000000 +0000
-+++ openssh-9.9p2-irix/openbsd-compat/arc4random.h	2025-05-12 12:47:24.257837593 +0000
+diff -Nur openssh-10.0p2/openbsd-compat/arc4random.h openssh-10.0p2-irix/openbsd-compat/arc4random.h
+--- openssh-10.0p2/openbsd-compat/arc4random.h	2025-02-18 08:15:08.000000000 +0000
++++ openssh-10.0p2-irix/openbsd-compat/arc4random.h	2025-05-12 12:47:24.257837593 +0000
 @@ -65,7 +65,7 @@
  static inline int
  _rs_allocate(struct _rs **rsp, struct _rsx **rsxp)
@@ -58,9 +58,9 @@ diff -Nur openssh-9.9p2/openbsd-compat/arc4random.h openssh-9.9p2-irix/openbsd-c
  	if ((*rsp = mmap(NULL, sizeof(**rsp), PROT_READ|PROT_WRITE,
  	    MAP_ANON|MAP_PRIVATE, -1, 0)) == MAP_FAILED)
  		return (-1);
-diff -Nur openssh-9.9p2/openbsd-compat/bsd-getentropy.c openssh-9.9p2-irix/openbsd-compat/bsd-getentropy.c
---- openssh-9.9p2/openbsd-compat/bsd-getentropy.c	2025-02-18 08:15:08.000000000 +0000
-+++ openssh-9.9p2-irix/openbsd-compat/bsd-getentropy.c	2025-05-12 12:47:24.257837593 +0000
+diff -Nur openssh-10.0p2/openbsd-compat/bsd-getentropy.c openssh-10.0p2-irix/openbsd-compat/bsd-getentropy.c
+--- openssh-10.0p2/openbsd-compat/bsd-getentropy.c	2025-02-18 08:15:08.000000000 +0000
++++ openssh-10.0p2-irix/openbsd-compat/bsd-getentropy.c	2025-05-12 12:47:24.257837593 +0000
 @@ -38,6 +38,25 @@
  
  #include "log.h"
@@ -98,9 +98,9 @@ diff -Nur openssh-9.9p2/openbsd-compat/bsd-getentropy.c openssh-9.9p2-irix/openb
  
  	if ((fd = open(SSH_RANDOM_DEV, O_RDONLY)) == -1) {
  		save_errno = errno;
-diff -Nur openssh-9.9p2/scp.c openssh-9.9p2-irix/scp.c
---- openssh-9.9p2/scp.c	2025-02-18 08:15:08.000000000 +0000
-+++ openssh-9.9p2-irix/scp.c	2025-05-12 12:47:24.257837593 +0000
+diff -Nur openssh-10.0p2/scp.c openssh-10.0p2-irix/scp.c
+--- openssh-10.0p2/scp.c	2025-02-18 08:15:08.000000000 +0000
++++ openssh-10.0p2-irix/scp.c	2025-05-12 12:47:24.257837593 +0000
 @@ -1016,7 +1016,7 @@
  
  static struct sftp_conn *
@@ -110,9 +110,9 @@ diff -Nur openssh-9.9p2/scp.c openssh-9.9p2-irix/scp.c
  {
  	if (sftp_direct == NULL) {
  		if (do_cmd(ssh_program, host, user, port, 1, "sftp",
-diff -Nur openssh-9.9p2/sshkey.c openssh-9.9p2-irix/sshkey.c
---- openssh-9.9p2/sshkey.c	2025-02-18 08:15:08.000000000 +0000
-+++ openssh-9.9p2-irix/sshkey.c	2025-05-12 12:47:24.258837648 +0000
+diff -Nur openssh-10.0p2/sshkey.c openssh-10.0p2-irix/sshkey.c
+--- openssh-10.0p2/sshkey.c	2025-02-18 08:15:08.000000000 +0000
++++ openssh-10.0p2-irix/sshkey.c	2025-05-12 12:47:24.258837648 +0000
 @@ -766,14 +766,18 @@
  sshkey_prekey_alloc(u_char **prekeyp, size_t len)
  {
@@ -157,3 +157,23 @@ diff -Nur openssh-9.9p2/sshkey.c openssh-9.9p2-irix/sshkey.c
  
  typedef struct aesctr_ctx {
  	int	rounds;				/* keylen-dependent #rounds */
+--- openssh-10.0p1/monitor_fdpass.c	2025-04-09 07:02:43.000000000 +0000
++++ openssh-10.0p1-irix/monitor_fdpass.c	2025-06-26 14:15:11.835840880 +0000
+@@ -87,7 +87,7 @@
+ 
+ 	pfd.fd = sock;
+ 	pfd.events = POLLOUT;
+-	while ((n = sendmsg(sock, &msg, 0)) == -1 &&
++	while ((n = sendmsg(sock, (void *)&msg, 0)) == -1 &&
+ 	    (errno == EAGAIN || errno == EINTR)) {
+ 		debug3_f("sendmsg(%d): %s", fd, strerror(errno));
+ 		(void)poll(&pfd, 1, -1);
+@@ -142,7 +142,7 @@
+ 
+ 	pfd.fd = sock;
+ 	pfd.events = POLLIN;
+-	while ((n = recvmsg(sock, &msg, 0)) == -1 &&
++	while ((n = recvmsg(sock, (void *)&msg, 0)) == -1 &&
+ 	    (errno == EAGAIN || errno == EINTR)) {
+ 		debug3_f("recvmsg: %s", strerror(errno));
+ 		(void)poll(&pfd, 1, -1);
