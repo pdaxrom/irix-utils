@@ -18,7 +18,7 @@ ifeq (6.5,$(IRIX_VERSION))
 else
 endif
 
-OBJS = compat_wchar.o snprintf.o getopt_long.o inet.o strto.o strlcpy.o strcasestr.o setenv.o strndup.o memmem.o netdb.o mkdtemp.o
+OBJS = compat_wchar.o snprintf.o getopt_long.o inet.o strto.o strlcpy.o strcasestr.o setenv.o strndup.o memmem.o netdb.o mkdtemp.o getline.o
 
 $(TARGET): compat_config.h $(OBJS)
 	$(CC) -shared -o $@ $^ -lm

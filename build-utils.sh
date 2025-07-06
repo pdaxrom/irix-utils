@@ -39,7 +39,12 @@ error() {
 }
 
 download() {
-    test -f $(basename $1) || wget $1 || error "Download $1"
+    local file=$(basename $1)
+    if [ ! "$2" = "" ]; then
+        file=$2
+    fi
+
+    test -f $file || wget $1 -O $file || error "Download $1"
 }
 
 apply_patch() {
@@ -112,3 +117,4 @@ build_libtiff
 #build_imlib2
 #build_feh
 build_xli
+build_iperf

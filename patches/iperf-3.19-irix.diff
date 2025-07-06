@@ -1,0 +1,192 @@
+diff -Nur iperf-3.19/src/iperf_api.c iperf-3.19-irix/src/iperf_api.c
+--- iperf-3.19/src/iperf_api.c	2025-05-16 16:44:00.000000000 +0000
++++ iperf-3.19-irix/src/iperf_api.c	2025-07-05 15:09:44.549278580 +0000
+@@ -69,6 +69,15 @@
+ #include <Windows.h>
+ #endif /* HAVE_SETPROCESSAFFINITYMASK */
+ 
++#ifdef sgi
++#define INET6_ADDRSTRLEN INET_ADDRSTRLEN
++
++static double round(double x)
++{
++    return floor(x + 0.5);
++}
++#endif
++
+ #include "net.h"
+ #include "iperf.h"
+ #include "iperf_api.h"
+@@ -951,7 +960,9 @@
+     int port;
+     struct sockaddr_storage sa;
+     struct sockaddr_in *sa_inP;
++#ifndef sgi
+     struct sockaddr_in6 *sa_in6P;
++#endif
+     socklen_t len;
+ 
+     now_secs = time((time_t*) 0);
+@@ -976,10 +987,12 @@
+ 	    sa_inP = (struct sockaddr_in *) &sa;
+             inet_ntop(AF_INET, &sa_inP->sin_addr, ipr, sizeof(ipr));
+ 	    port = ntohs(sa_inP->sin_port);
++#ifndef sgi
+         } else {
+ 	    sa_in6P = (struct sockaddr_in6 *) &sa;
+             inet_ntop(AF_INET6, &sa_in6P->sin6_addr, ipr, sizeof(ipr));
+ 	    port = ntohs(sa_in6P->sin6_port);
++#endif
+         }
+ 	if (mapped_v4_to_regular_v4(ipr)) {
+ 	    iperf_set_mapped_v4(test, 1);
+@@ -1035,12 +1048,15 @@
+  */
+ int
+ iperf_parse_hostname(struct iperf_test *test, char *spec, char **p, char **p1) {
++#ifndef sgi
+     struct in6_addr ipv6_addr;
++#endif
+ 
+     // Format is <addr>[%<device>]
+     if ((*p = strtok(spec, "%")) != NULL &&
+         (*p1 = strtok(NULL, "%")) != NULL) {
+ 
++#ifndef sgi
+         /*
+          * If an IPv6 literal for a link-local address, then
+          * tell the caller to leave the "%" in the hostname.
+@@ -1051,12 +1067,13 @@
+                 iperf_printf(test, "IPv6 link-local address literal detected\n");
+             }
+             return 0;
+-        }
++        } else
++#endif
+         /*
+          * Other kind of address or FQDN. The interface name after
+          * "%" is a shorthand for --bind-dev.
+          */
+-        else {
++        {
+             if (test->debug) {
+                 iperf_printf(test, "p %s p1 %s\n", *p, *p1);
+             }
+@@ -2989,6 +3006,7 @@
+ 	mapped_v4_to_regular_v4(ipr);
+         lport = ntohs(((struct sockaddr_in *) &sp->local_addr)->sin_port);
+         rport = ntohs(((struct sockaddr_in *) &sp->remote_addr)->sin_port);
++#ifndef sgi
+     } else {
+         inet_ntop(AF_INET6, (void *) &((struct sockaddr_in6 *) &sp->local_addr)->sin6_addr, ipl, sizeof(ipl));
+ 	mapped_v4_to_regular_v4(ipl);
+@@ -2996,6 +3014,7 @@
+ 	mapped_v4_to_regular_v4(ipr);
+         lport = ntohs(((struct sockaddr_in6 *) &sp->local_addr)->sin6_port);
+         rport = ntohs(((struct sockaddr_in6 *) &sp->remote_addr)->sin6_port);
++#endif
+     }
+ 
+     if (sp->test->json_output)
+@@ -3024,11 +3043,13 @@
+     /* Initialize mutex for printing output */
+     pthread_mutexattr_t mutexattr;
+     pthread_mutexattr_init(&mutexattr);
++#ifndef sgi
+     rc = pthread_mutexattr_settype(&mutexattr, PTHREAD_MUTEX_ERRORCHECK);
+     if (rc != 0) {
+         errno = rc;
+         perror("iperf_new_test: pthread_mutexattr_settype");
+     }
++#endif
+ 
+     if (pthread_mutex_init(&(test->print_mutex), &mutexattr) != 0) {
+         perror("iperf_new_test: pthread_mutex_init");
+@@ -4985,11 +5006,19 @@
+     if (sig == SIGHUP)
+         exit_normal = 1;
+ #endif
++#ifdef sgi
++    if (exit_normal) {
++        iperf_signormalexit(test, "interrupt - %s by signal %d", iperf_strerror(i_errno), sig);
++    } else {
++        iperf_errexit(test, "interrupt - %s by signal %d", iperf_strerror(i_errno), sig);
++    }
++#else
+     if (exit_normal) {
+         iperf_signormalexit(test, "interrupt - %s by signal %s(%d)", iperf_strerror(i_errno), strsignal(sig), sig);
+     } else {
+         iperf_errexit(test, "interrupt - %s by signal %s(%d)", iperf_strerror(i_errno), strsignal(sig), sig);
+     }
++#endif
+ }
+ 
+ /* Try to write a PID file if requested, return -1 on an error. */
+diff -Nur iperf-3.19/src/iperf_time.c iperf-3.19-irix/src/iperf_time.c
+--- iperf-3.19/src/iperf_time.c	2025-05-16 16:44:00.000000000 +0000
++++ iperf-3.19-irix/src/iperf_time.c	2025-07-05 15:09:44.549278580 +0000
+@@ -31,7 +31,7 @@
+ #include "iperf_config.h"
+ #include "iperf_time.h"
+ 
+-#ifdef HAVE_CLOCK_GETTIME
++#if defined(HAVE_CLOCK_GETTIME) && !defined(sgi)
+ 
+ #include <time.h>
+ 
+diff -Nur iperf-3.19/src/iperf_util.c iperf-3.19-irix/src/iperf_util.c
+--- iperf-3.19/src/iperf_util.c	2025-05-16 16:44:00.000000000 +0000
++++ iperf-3.19-irix/src/iperf_util.c	2025-07-05 15:36:38.374261588 +0000
+@@ -50,6 +50,24 @@
+ #include "iperf.h"
+ #include "iperf_api.h"
+ 
++#ifdef sgi
++#include <time.h>
++#include <stdlib.h>
++int readentropy(void *out, size_t outsize)
++{
++    size_t i;
++    uint8_t *ptr = out;
++    srand(clock());
++
++    for (i = 0; i < outsize; i++ ) {
++        ptr[i] = rand() % 256;
++        if ((i % 8) == 7) {
++            srand(clock());
++        }
++    }
++    return 0;
++}
++#else
+ /*
+  * Read entropy from /dev/urandom
+  * Errors are fatal.
+@@ -77,7 +95,7 @@
+     }
+     return 0;
+ }
+-
++#endif
+ 
+ /*
+  * Fills buffer with repeating pattern (similar to pattern that used in iperf2)
+diff -Nur iperf-3.19/src/net.c iperf-3.19-irix/src/net.c
+--- iperf-3.19/src/net.c	2025-05-16 16:44:00.000000000 +0000
++++ iperf-3.19-irix/src/net.c	2025-07-05 15:09:44.550278635 +0000
+@@ -202,6 +202,7 @@
+ 	    lcladdr->sin_addr.s_addr = INADDR_ANY;
+ 	    addrlen = sizeof(struct sockaddr_in);
+ 	}
++#ifndef sgi
+ 	/* IPv6 */
+ 	else if (server_res->ai_family == AF_INET6) {
+ 	    struct sockaddr_in6 *lcladdr = (struct sockaddr_in6 *) &lcl;
+@@ -210,6 +211,7 @@
+ 	    lcladdr->sin6_addr = in6addr_any;
+ 	    addrlen = sizeof(struct sockaddr_in6);
+ 	}
++#endif
+ 	/* Unknown protocol */
+ 	else {
+ 	    close(s);
