@@ -6,13 +6,15 @@ if ! test -e git.installed; then
     pushd git-${GIT_VERSION}
 #    patch -p1 < ${TOPDIR}/patches/git-${GIT_VERSION}.patch
 
-#    mkdir b
+#    mkdir -p b
 #    cd b
 
-#    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX}" --cache-file=git.cache
+#  ac_cv_iconv_omits_bom=yes \
+#    ../configure ${EXTRA_CONF_OPTS} --prefix=$INST_PREFIX --host=${CROSS_PREFIX} CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX}" --cache-file=git.cache
 
     make -j $MAKE_TASKS \
-        CC=${CROSS_PREFIX}-gcc AR=${CROSS_PREFIX}-ar STRIP=${CROSS_PREFIX}-strip \
+        CC="${CROSS_PREFIX}-gcc -L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX} -lcompat_irix" AR=${CROSS_PREFIX}-ar STRIP=${CROSS_PREFIX}-strip \
+        V=1 \
         USE_WOLFSSL=1 \
         OPENSSL_SHA1=1 \
         OPENSSL_SHA256=1 \
@@ -26,10 +28,11 @@ if ! test -e git.installed; then
         NEEDS_LIBGEN=1 \
         CURL_LDFLAGS="-L$LIBDIR_PREFIX -lcurl" \
         HOME=$INST_PREFIX \
-        COMPAT_CFLAGS="-std=gnu99 -I${INST_PREFIX}/include -DDISABLE_COMPAT_GETOPT_LONG -UHAVE_SYSINFO"
+        COMPAT_CFLAGS="-std=gnu99 -I${INST_PREFIX}/include -DDISABLE_COMPAT_GETOPT_LONG -UHAVE_SYSINFO" \
 
     make -j $MAKE_TASKS \
-        CC=${CROSS_PREFIX}-gcc AR=${CROSS_PREFIX}-ar STRIP=${CROSS_PREFIX}-strip \
+        CC="${CROSS_PREFIX}-gcc -L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX} -lcompat_irix" AR=${CROSS_PREFIX}-ar STRIP=${CROSS_PREFIX}-strip \
+        V=1 \
         USE_WOLFSSL=1 \
         OPENSSL_SHA1=1 \
         OPENSSL_SHA256=1 \

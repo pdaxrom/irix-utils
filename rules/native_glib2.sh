@@ -21,7 +21,7 @@ build_native_glib2() {
             mkdir -p buildxhost
             cd buildxhost
 
-            ../configure --prefix=$HOST_PREFIX --disable-libmount --with-pcre=internal
+            ../configure ${EXTRA_CONF_OPTS} --prefix=$HOST_PREFIX --disable-libmount --with-pcre=internal
 
             make -j $MAKE_TASKS
 

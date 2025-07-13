@@ -9,9 +9,12 @@ if [ "$1" = "o32" ]; then
 elif [ "$1" = "n32" ]; then
     CROSS_PREFIX=mips-sgi-irix6n32
     LIBDIR_SUFFIX=32
+elif [ "$1" = "n32-6.5" ]; then
+    CROSS_PREFIX=mips-sgi-irix6n32
+    LIBDIR_SUFFIX=32
     IRIX_VERSION=6.5
 else
-    echo "$0 o32|n32"
+    echo "$0 o32|n32|n32-6.5"
     exit 1
 fi
 
@@ -31,6 +34,8 @@ cd tmp
 export HOST_PREFIX=${PWD}/host
 mkdir -p $HOST_PREFIX
 export PATH=${HOST_PREFIX}/bin:$PATH
+
+EXTRA_CONF_OPTS="--disable-static --enable-shared"
 
 error() {
     shift
@@ -118,3 +123,11 @@ build_libtiff
 #build_feh
 build_xli
 build_iperf
+
+find $INST_PREFIX -type f -executable | while read f; do
+    if file $f | grep -q ELF; then
+        ${CROSS_PREFIX}-strip $f
+    fi
+done
+
+tar --owner 0 --group 0 -zcf ${TOPDIR}/pdaxrom-ng-$1.tar.gz $INST_PREFIX

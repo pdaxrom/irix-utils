@@ -16,7 +16,7 @@ build_native_libffi() {
             mkdir -p buildxhost
             cd buildxhost
 
-            ../configure --prefix=$HOST_PREFIX
+            ../configure ${EXTRA_CONF_OPTS} --prefix=$HOST_PREFIX
 
             make -j $MAKE_TASKS
 

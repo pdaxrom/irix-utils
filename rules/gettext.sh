@@ -14,7 +14,7 @@ ac_cv_have_decl_getaddrinfo=${ac_cv_have_decl_getaddrinfo=yes}
 gl_cv_func_getaddrinfo=${gl_cv_func_getaddrinfo=yes}
 ac_cv_type_struct_addrinfo=${ac_cv_type_struct_addrinfo=yes}
 EOF
-    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --disable-threads CPPFLAGS="-D_SGIAPI -std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX}" --cache-file=gettext.cache
+    ../configure ${EXTRA_CONF_OPTS} --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --disable-threads CPPFLAGS="-D_SGIAPI -std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX}" --cache-file=gettext.cache
 
     make -j $MAKE_TASKS
 

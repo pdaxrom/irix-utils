@@ -10,7 +10,7 @@ if ! test -e libressl.installed; then
     mkdir -p build
     cd build
 
-    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --disable-hardening CPPFLAGS="-std=gnu99 -Wno-implicit-function-declaration -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX}"
+    ../configure ${EXTRA_CONF_OPTS} --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --disable-hardening CPPFLAGS="-std=gnu99 -Wno-implicit-function-declaration -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX}"
 
     make -j $MAKE_TASKS
 

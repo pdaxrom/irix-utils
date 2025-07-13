@@ -8,7 +8,7 @@ if ! test -e native-gettext.installed; then
     mkdir -p build
     cd build
 
-    ../configure --prefix=$HOST_PREFIX
+    ../configure ${EXTRA_CONF_OPTS} --prefix=$HOST_PREFIX
 
     make -j $MAKE_TASKS
 

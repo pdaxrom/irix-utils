@@ -8,7 +8,7 @@ if ! test -e tar.installed; then
     mkdir -p build
     cd build
     cp -f ${TOPDIR}/caches/tar.cache .
-    ../configure --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --disable-year2038  CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="-L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX} -lintl" --cache-file=tar.cache
+    ../configure ${EXTRA_CONF_OPTS} --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --disable-year2038  CPPFLAGS="-std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="-L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX} -lintl" --cache-file=tar.cache
 
     make -j $MAKE_TASKS
 
