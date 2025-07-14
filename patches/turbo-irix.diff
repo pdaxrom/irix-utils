@@ -1,0 +1,123 @@
+diff -Nur turbo/deps/tvision/source/platform/unixclip.cpp turbo-irix/deps/tvision/source/platform/unixclip.cpp
+--- turbo/deps/tvision/source/platform/unixclip.cpp	2025-07-14 20:04:47.950508906 +0000
++++ turbo-irix/deps/tvision/source/platform/unixclip.cpp	2025-07-14 19:55:20.849714784 +0000
+@@ -284,7 +284,11 @@
+         {
+             execvp(argv[0], (char * const *) argv);
+         }
++#ifdef sgi
++        exit(1);
++#else
+         _Exit(1);
++#endif
+     }
+     else if (pid > 0)
+     {
+diff -Nur turbo/include/turbo/scintilla/include/Platform.h turbo-irix/include/turbo/scintilla/include/Platform.h
+--- turbo/include/turbo/scintilla/include/Platform.h	2025-07-14 20:04:46.345421796 +0000
++++ turbo-irix/include/turbo/scintilla/include/Platform.h	2025-07-14 19:40:53.224555206 +0000
+@@ -76,6 +76,14 @@
+ 
+ #endif
+ 
++#ifdef sgi
++#define ROUND(x) ((x >= 0.0) ? floor(x + 0.5) : ceil(x - 0.5))
++#define LROUND(x) ((x >= 0.0) ? (long)(x + 0.5) : (long)(x - 0.5))
++#else
++#define ROUND(x) std::round(x)
++#define LROUND(c) std::lround(x)
++#endif
++
+ namespace Scintilla {
+ 
+ typedef float XYPOSITION;
+diff -Nur turbo/source/scintilla/src/CallTip.cxx turbo-irix/source/scintilla/src/CallTip.cxx
+--- turbo/source/scintilla/src/CallTip.cxx	2025-07-14 20:04:46.355422339 +0000
++++ turbo-irix/source/scintilla/src/CallTip.cxx	2025-07-14 19:42:28.617724529 +0000
+@@ -167,7 +167,7 @@
+ 			xEnd = NextTabPos(x);
+ 		} else {
+ 			const std::string_view segText = sv.substr(startSeg, endSeg - startSeg);
+-			xEnd = x + static_cast<int>(std::lround(surface->WidthText(font, segText)));
++			xEnd = x + static_cast<int>(LROUND(surface->WidthText(font, segText)));
+ 			if (draw) {
+ 				rcClient.left = static_cast<XYPOSITION>(x);
+ 				rcClient.right = static_cast<XYPOSITION>(xEnd);
+@@ -188,7 +188,7 @@
+ 	PRectangle rcClient(1.0f, 1.0f, rcClientSize.right - 1, rcClientSize.bottom - 1);
+ 
+ 	// To make a nice small call tip window, it is only sized to fit most normal characters without accents
+-	const int ascent = static_cast<int>(std::round(surfaceWindow->Ascent(font) - surfaceWindow->InternalLeading(font)));
++	const int ascent = static_cast<int>(ROUND(surfaceWindow->Ascent(font) - surfaceWindow->InternalLeading(font)));
+ 
+ 	// For each line...
+ 	// Draw the definition in three parts: before highlight, highlighted, after highlight
+@@ -293,7 +293,7 @@
+ 	rectDown = PRectangle(0,0,0,0);
+ 	offsetMain = insetX;            // changed to right edge of any arrows
+ 	const int width = PaintContents(surfaceMeasure.get(), false) + insetX;
+-	lineHeight = static_cast<int>(std::lround(surfaceMeasure->Height(font)));
++	lineHeight = static_cast<int>(LROUND(surfaceMeasure->Height(font)));
+ 
+ 	// The returned
+ 	// rectangle is aligned to the right edge of the last arrow encountered in
+diff -Nur turbo/source/scintilla/src/Document.cxx turbo-irix/source/scintilla/src/Document.cxx
+--- turbo/source/scintilla/src/Document.cxx	2025-07-14 20:04:46.355422339 +0000
++++ turbo-irix/source/scintilla/src/Document.cxx	2025-07-14 19:34:25.761560014 +0000
+@@ -21,6 +21,10 @@
+ #include <memory>
+ #include <chrono>
+ 
++#ifdef sgi
++#define NO_CXX11_REGEX
++#endif
++
+ #ifndef NO_CXX11_REGEX
+ #include <regex>
+ #endif
+diff -Nur turbo/source/scintilla/src/EditView.cxx turbo-irix/source/scintilla/src/EditView.cxx
+--- turbo/source/scintilla/src/EditView.cxx	2025-07-14 20:04:46.356422393 +0000
++++ turbo-irix/source/scintilla/src/EditView.cxx	2025-07-14 19:27:13.337133073 +0000
+@@ -1264,8 +1264,8 @@
+ 		if (model.foldDisplayTextStyle == SC_FOLDDISPLAYTEXT_BOXED) {
+ 			surface->PenColour(textFore);
+ 			PRectangle rcBox = rcSegment;
+-			rcBox.left = std::round(rcSegment.left);
+-			rcBox.right = std::round(rcSegment.right);
++			rcBox.left = ROUND(rcSegment.left);
++			rcBox.right = ROUND(rcSegment.right);
+ 			const IntegerRectangle ircBox(rcBox);
+ 			surface->MoveTo(ircBox.left, ircBox.top);
+ 			surface->LineTo(ircBox.left, ircBox.bottom);
+@@ -1497,7 +1497,7 @@
+ 					}
+ 				} else {
+ 					/* Line caret */
+-					rcCaret.left = std::round(xposCaret - caretWidthOffset);
++					rcCaret.left = ROUND(xposCaret - caretWidthOffset);
+ 					rcCaret.right = rcCaret.left + vsDraw.caretWidth;
+ 				}
+ 				const ColourDesired caretColour = mainCaret ? vsDraw.caretcolour : vsDraw.additionalCaretColour;
+diff -Nur turbo/source/scintilla/src/Indicator.cxx turbo-irix/source/scintilla/src/Indicator.cxx
+--- turbo/source/scintilla/src/Indicator.cxx	2025-07-14 20:04:46.357422448 +0000
++++ turbo-irix/source/scintilla/src/Indicator.cxx	2025-07-14 19:25:11.705545153 +0000
+@@ -25,8 +25,8 @@
+ 
+ static PRectangle PixelGridAlign(const PRectangle &rc) noexcept {
+ 	// Move left and right side to nearest pixel to avoid blurry visuals
+-	return PRectangle(std::round(rc.left), std::floor(rc.top),
+-		std::round(rc.right), std::floor(rc.bottom));
++	return PRectangle(ROUND(rc.left), std::floor(rc.top),
++		ROUND(rc.right), std::floor(rc.bottom));
+ }
+ 
+ void Indicator::Draw(Surface *surface, const PRectangle &rc, const PRectangle &rcLine, const PRectangle &rcCharacter, DrawState drawState, int value) const {
+@@ -203,7 +203,7 @@
+ 		if (rcCharacter.Width() >= 0.1) {
+ 			const XYPOSITION pixelHeight = std::floor(rc.Height() - 1.0f);	// 1 pixel onto next line if multiphase
+ 			const XYPOSITION x = (sacDraw.style == INDIC_POINT) ? (rcCharacter.left) : ((rcCharacter.right + rcCharacter.left) / 2);
+-			const XYPOSITION ix = std::round(x);
++			const XYPOSITION ix = ROUND(x);
+ 			const XYPOSITION iy = std::floor(rc.top + 1.0f);
+ 			Point pts[] = {
+ 				Point(ix - pixelHeight, iy + pixelHeight),	// Left

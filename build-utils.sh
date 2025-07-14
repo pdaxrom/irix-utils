@@ -124,6 +124,8 @@ build_libtiff
 build_xli
 build_iperf
 
+build_turbo
+
 find $INST_PREFIX -type f -executable | while read f; do
     if file $f | grep -q ELF; then
         ${CROSS_PREFIX}-strip $f

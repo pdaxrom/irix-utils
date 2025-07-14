@@ -6,6 +6,10 @@
 #include_next <stdlib.h>
 #pragma pop_macro("DISABLE_COMPAT_GETOPT_LONG")
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <compat_strto.h>
 
 int compat_setenv(const char *name, const char *value, int overwrite);
@@ -17,5 +21,9 @@ int compat_unsetenv(const char *name);
 char *mkdtemp(char *path);
 
 #define strtof (float)strtod
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
