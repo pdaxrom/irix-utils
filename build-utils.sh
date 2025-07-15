@@ -114,9 +114,9 @@ build_libjpeg
 build_libpng
 build_libtiff
 ##build_hardbuzz
-#build_freetype
-#build_libxml2
-#build_fontconfig
+build_freetype
+build_libxml2
+build_fontconfig
 #build_pixman
 #build_cairo
 #build_pango
@@ -125,6 +125,10 @@ build_libtiff
 #build_feh
 build_xli
 build_iperf
+
+build_aterm
+
+#exit 0
 
 build_turbo
 

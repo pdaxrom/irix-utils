@@ -1,0 +1,52 @@
+diff -Nur aterm-1.0.1/autoconf/configure.in aterm-1.0.1-irix/autoconf/configure.in
+--- aterm-1.0.1/autoconf/configure.in	2007-08-01 17:45:34.000000000 +0000
++++ aterm-1.0.1-irix/autoconf/configure.in	2025-07-15 04:29:13.196131616 +0000
+@@ -207,10 +207,6 @@
+   CFLAGS="$CFLAGS -Wuninitialized -Wwrite-strings -Wcast-qual -Wbad-function-cast -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wconversion -Wcomment -Wcast-align -Winline -Wshadow -Wredundant-decls -Wid-clash-31"
+ fi
+ 
+-if test "x$GCC" = "xyes"; then
+-   LDFLAGS="$LDFLAGS -rdynamic"
+-fi
+-
+ dnl# done with flags - lets export those for our children to use :
+ export CFLAGS
+ export LDFLAGS
+diff -Nur aterm-1.0.1/autoconf/Make.common.in aterm-1.0.1-irix/autoconf/Make.common.in
+--- aterm-1.0.1/autoconf/Make.common.in	2005-05-26 16:44:49.000000000 +0000
++++ aterm-1.0.1-irix/autoconf/Make.common.in	2025-07-15 04:29:13.196131616 +0000
+@@ -41,7 +41,7 @@
+ CP = @CP@
+ SED = @SED@
+ INSTALL = @INSTALL@
+-INSTALL_PROGRAM = @INSTALL@ -s -m 755
++INSTALL_PROGRAM = @INSTALL@ -m 755
+ INSTALL_DATA = @INSTALL@ -m 644
+ 
+ # Flags & libs
+diff -Nur aterm-1.0.1/configure aterm-1.0.1-irix/configure
+--- aterm-1.0.1/configure	2007-08-01 17:47:04.000000000 +0000
++++ aterm-1.0.1-irix/configure	2025-07-15 04:29:13.197131671 +0000
+@@ -4571,10 +4571,6 @@
+   CFLAGS="$CFLAGS -Wuninitialized -Wwrite-strings -Wcast-qual -Wbad-function-cast -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wconversion -Wcomment -Wcast-align -Winline -Wshadow -Wredundant-decls -Wid-clash-31"
+ fi
+ 
+-if test "x$GCC" = "xyes"; then
+-   LDFLAGS="$LDFLAGS -rdynamic"
+-fi
+-
+ export CFLAGS
+ export LDFLAGS
+ 
+diff -Nur aterm-1.0.1/doc/Makefile.in aterm-1.0.1-irix/doc/Makefile.in
+--- aterm-1.0.1/doc/Makefile.in	2005-01-11 19:05:17.000000000 +0000
++++ aterm-1.0.1-irix/doc/Makefile.in	2025-07-15 04:29:35.370354622 +0000
+@@ -29,7 +29,7 @@
+ 	$(RMF) Makefile
+ 
+ install:
+-	$(INSTALL_DATA) aterm.1 $(DESTDIR)$(mandir)/$(manprefix)aterm.$(manext)
++	$(INSTALL_DATA) aterm.1 $(DESTDIR)$(mandir)/$(manprefix)aterm.$(manext) || true
+ 
+ uninstall:
+ 	-cd $(mandir); $(RMF) $(manprefix)aterm.$(manext)

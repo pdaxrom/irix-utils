@@ -9,7 +9,12 @@ build_mc() {
 	    cd b
 #	    cp ${TOPDIR}/caches-single/mc.cache .
 
-	    ../configure ${EXTRA_CONF_OPTS} --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --disable-nls --without-included-gettext --with-screen=ncurses --with-x --with-ncurses-includes=${INST_PREFIX}/include --with-ncurses-libs=${LIBDIR_PREFIX} CPPFLAGS="-Wno-implicit-int -std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX}" --cache-file=mc.cache
+            local EXTRA_X11_LIB=""
+            if [ "$LIBDIR_SUFFIX" = "" ]; then
+                EXTRA_X11_LIB="-lcvt"
+            fi
+
+	    ../configure ${EXTRA_CONF_OPTS} --prefix=$INST_PREFIX --host=${CROSS_PREFIX} --libdir=$LIBDIR_PREFIX --disable-nls --without-included-gettext --with-screen=ncurses --with-x --with-ncurses-includes=${INST_PREFIX}/include --with-ncurses-libs=${LIBDIR_PREFIX} CPPFLAGS="-Wno-implicit-int -std=gnu99 -I${INST_PREFIX}/include" LDFLAGS="${COMPAT_IRIX_LIB} -L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX} ${EXTRA_X11_LIB}" --cache-file=mc.cache
 
 	    make -j $MAKE_TASKS
 
