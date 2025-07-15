@@ -6,9 +6,11 @@ TOPDIR=$PWD
 
 if [ "$1" = "o32" ]; then
     CROSS_PREFIX=mips-sgi-irix6o32
+    LIBSTDCPP_PREFIX=/opt/irix-gcc-o32/lib
 elif [ "$1" = "n32" ]; then
     CROSS_PREFIX=mips-sgi-irix6n32
     LIBDIR_SUFFIX=32
+    LIBSTDCPP_PREFIX=/opt/irix-gcc-n32/lib32
 elif [ "$1" = "n32-6.5" ]; then
     CROSS_PREFIX=mips-sgi-irix6n32
     LIBDIR_SUFFIX=32
