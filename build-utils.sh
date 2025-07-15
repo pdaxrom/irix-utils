@@ -7,10 +7,12 @@ TOPDIR=$PWD
 if [ "$1" = "o32" ]; then
     CROSS_PREFIX=mips-sgi-irix6o32
     LIBSTDCPP_PREFIX=/opt/irix-gcc-o32/lib
+    CMAKE_CROSS_CONF=${TOPDIR}/misc/tc-o32.cmake
 elif [ "$1" = "n32" ]; then
     CROSS_PREFIX=mips-sgi-irix6n32
     LIBDIR_SUFFIX=32
     LIBSTDCPP_PREFIX=/opt/irix-gcc-n32/lib32
+    CMAKE_CROSS_CONF=${TOPDIR}/misc/tc-n32.cmake
 elif [ "$1" = "n32-6.5" ]; then
     CROSS_PREFIX=mips-sgi-irix6n32
     LIBDIR_SUFFIX=32
@@ -128,7 +130,8 @@ build_iperf
 
 build_aterm
 
-#exit 0
+build_libptytty
+build_rxvt_unicode
 
 build_turbo
 

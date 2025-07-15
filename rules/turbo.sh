@@ -14,7 +14,7 @@ build_turbo() {
 
             mkdir -p buildx
             cd buildx
-            cmake -DCMAKE_TOOLCHAIN_FILE=${TOPDIR}/misc/tc-o32.cmake .. -DCMAKE_LIBRARY_PATH=${LIBDIR_PREFIX} -DNCURSESW=${LIBDIR_PREFIX}/libncursesw.so -DNCURSESW_INCLUDE=${INST_PREFIX}/include -DCMAKE_CXX_FLAGS="-O3 -I${INST_PREFIX}/include" -DCMAKE_EXE_LINKER_FLAGS="-L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX}:${LIBSTDCPP_PREFIX} -lcompat_irix"
+            cmake -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CROSS_CONF} .. -DCMAKE_LIBRARY_PATH=${LIBDIR_PREFIX} -DNCURSESW=${LIBDIR_PREFIX}/libncursesw.so -DNCURSESW_INCLUDE=${INST_PREFIX}/include -DCMAKE_CXX_FLAGS="-O3 -I${INST_PREFIX}/include" -DCMAKE_EXE_LINKER_FLAGS="-L${LIBDIR_PREFIX} -Wl,-rpath,${LIBDIR_PREFIX}:${LIBSTDCPP_PREFIX} -lcompat_irix"
 
             make -j $MAKE_TASKS
 

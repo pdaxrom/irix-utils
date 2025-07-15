@@ -3,15 +3,15 @@
 
 #include <inttypes.h>
 
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-extern intmax_t strtoimax(const char *nptr, char **endptr, int base);
-extern uintmax_t strtoumax(const char *nptr, char **endptr, int base);
+//extern intmax_t strtoimax(const char *nptr, char **endptr, int base);
+//extern uintmax_t strtoumax(const char *nptr, char **endptr, int base);
 
-//#ifdef __cplusplus
-//}
-//#endif
+#ifdef __cplusplus
+}
+#endif
 
 #endif

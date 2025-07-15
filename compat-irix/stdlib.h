@@ -10,8 +10,6 @@
 extern "C" {
 #endif
 
-#include <compat_strto.h>
-
 int compat_setenv(const char *name, const char *value, int overwrite);
 int compat_unsetenv(const char *name);
 

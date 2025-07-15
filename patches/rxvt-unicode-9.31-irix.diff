@@ -1,0 +1,28 @@
+diff -Nur rxvt-unicode-9.31/libev/ev.c rxvt-unicode-9.31-irix/libev/ev.c
+--- rxvt-unicode-9.31/libev/ev.c	2022-08-10 16:49:41.000000000 +0000
++++ rxvt-unicode-9.31-irix/libev/ev.c	2025-07-15 17:41:05.545992497 +0000
+@@ -693,6 +693,10 @@
+   #else
+     #define ECB_PTRSIZE 4
+   #endif
++
++  #ifdef sgi
++  #include <stdint.h>
++  #endif
+ #endif
+ 
+ #define ECB_GCC_AMD64 (__amd64 || __amd64__ || __x86_64 || __x86_64__)
+diff -Nur rxvt-unicode-9.31/src/ecb.h rxvt-unicode-9.31-irix/src/ecb.h
+--- rxvt-unicode-9.31/src/ecb.h	2021-06-22 13:26:46.000000000 +0000
++++ rxvt-unicode-9.31-irix/src/ecb.h	2025-07-15 16:04:47.788958201 +0000
+@@ -84,6 +84,10 @@
+   #else
+     #define ECB_PTRSIZE 4
+   #endif
++
++  #ifdef sgi
++  #include <stdint.h>
++  #endif
+ #endif
+ 
+ #define ECB_GCC_AMD64 (__amd64 || __amd64__ || __x86_64 || __x86_64__)

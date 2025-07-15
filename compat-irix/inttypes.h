@@ -175,4 +175,6 @@
 
 #endif
 
+#include <compat_strto.h>
+
 #endif

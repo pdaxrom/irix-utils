@@ -1,0 +1,154 @@
+diff -Nur libptytty-2.0/CMakeLists.txt libptytty-2.0-irix/CMakeLists.txt
+--- libptytty-2.0/CMakeLists.txt	2021-08-04 14:07:44.000000000 +0000
++++ libptytty-2.0-irix/CMakeLists.txt	2025-07-15 12:33:17.978856755 +0000
+@@ -252,15 +252,22 @@
+ 
+      msg.msg_iov        = &iov;
+      msg.msg_iovlen     = 1;
++
++#ifdef sgi
++     msg.msg_name = NULL;
++     msg.msg_namelen = 0;
++     msg.msg_accrights = (void *) 5;
++     msg.msg_accrightslen = sizeof(int);
++#else
+      msg.msg_control    = buf;
+      msg.msg_controllen = sizeof buf;
+-
+      struct cmsghdr *cmsg = CMSG_FIRSTHDR (&msg);
+      cmsg->cmsg_level = SOL_SOCKET;
+      cmsg->cmsg_type  = SCM_RIGHTS;
+      cmsg->cmsg_len   = 100;
+ 
+      *(int *)CMSG_DATA (cmsg) = 5;
++#endif
+ 
+      return sendmsg (3, &msg, 0);
+    }
+diff -Nur libptytty-2.0/src/ecb.h libptytty-2.0-irix/src/ecb.h
+--- libptytty-2.0/src/ecb.h	2021-07-24 07:52:49.000000000 +0000
++++ libptytty-2.0-irix/src/ecb.h	2025-07-15 14:53:32.699252275 +0000
+@@ -84,6 +84,16 @@
+   #else
+     #define ECB_PTRSIZE 4
+   #endif
++  #ifdef sgi
++  typedef   signed char   int_fast8_t;
++  typedef unsigned char  uint_fast8_t;
++  typedef   signed int    int_fast16_t;
++  typedef unsigned int   uint_fast16_t;
++  typedef   signed int    int_fast32_t;
++  typedef unsigned int   uint_fast32_t;
++  typedef  int64_t  int_fast64_t;
++  typedef uint64_t uint_fast64_t;
++  #endif
+ #endif
+ 
+ #define ECB_GCC_AMD64 (__amd64 || __amd64__ || __x86_64 || __x86_64__)
+diff -Nur libptytty-2.0/src/fdpass.C libptytty-2.0-irix/src/fdpass.C
+--- libptytty-2.0/src/fdpass.C	2021-07-24 07:52:49.000000000 +0000
++++ libptytty-2.0-irix/src/fdpass.C	2025-07-15 14:49:39.748593870 +0000
+@@ -31,6 +31,7 @@
+ 
+ #include "libptytty.h"
+ 
++#ifndef sgi
+ // CMSG_SPACE & CMSG_LEN are rfc2292 extensions to unix
+ #ifndef CMSG_SPACE
+ # define CMSG_SPACE(len) (sizeof (cmsghdr) + len)
+@@ -39,18 +40,20 @@
+ #ifndef CMSG_LEN
+ # define CMSG_LEN(len) (sizeof (cmsghdr) + len)
+ #endif
++#endif
+ 
+ bool
+ ptytty::send_fd (int socket, int fd)
+ {
++#ifndef sgi
+   void *buf = malloc (CMSG_SPACE (sizeof (int)));
+ 
+   if (!buf)
+     return 0;
++#endif
+ 
+   msghdr msg;
+   iovec iov;
+-  cmsghdr *cmsg;
+   char data = 0;
+ 
+   iov.iov_base = &data;
+@@ -60,6 +63,15 @@
+   msg.msg_namelen    = 0;
+   msg.msg_iov        = &iov;
+   msg.msg_iovlen     = 1;
++
++#ifdef sgi
++  msg.msg_name = NULL;
++  msg.msg_namelen = 0;
++  msg.msg_accrights = (char *)&fd;
++  msg.msg_accrightslen = sizeof(int);
++#else
++  cmsghdr *cmsg;
++
+   msg.msg_control    = buf;
+   msg.msg_controllen = CMSG_SPACE (sizeof (int));
+ 
+@@ -69,10 +81,13 @@
+   cmsg->cmsg_len   = CMSG_LEN (sizeof (int));
+ 
+   *(int *)CMSG_DATA (cmsg) = fd;
++#endif
+ 
+   ssize_t result = sendmsg (socket, &msg, 0);
+ 
++#ifndef sgi
+   free (buf);
++#endif
+ 
+   return result >= 0;
+ }
+@@ -80,8 +95,11 @@
+ int
+ ptytty::recv_fd (int socket)
+ {
++#ifdef sgi
++  void *buf = malloc(sizeof(int));
++#else
+   void *buf = malloc (CMSG_SPACE (sizeof (int)));
+-
++#endif
+   if (!buf)
+     return -1;
+ 
+@@ -96,14 +114,22 @@
+   msg.msg_namelen    = 0;
+   msg.msg_iov        = &iov;
+   msg.msg_iovlen     = 1;
++#ifdef sgi
++  msg.msg_accrights = (char *)buf;
++  msg.msg_accrightslen = sizeof(int);
++#else
+   msg.msg_control    = buf;
+   msg.msg_controllen = CMSG_SPACE (sizeof (int));
++#endif
+ 
+   int fd = -1;
+ 
+   if (recvmsg (socket, &msg, 0) >  0
+       && data                   == 0)
+     {
++#ifdef sgi
++      fd = *((int *)buf);
++#else
+       cmsghdr *cmsg = CMSG_FIRSTHDR (&msg);
+ 
+       if (cmsg
+@@ -111,6 +137,7 @@
+           && cmsg->cmsg_type  == SCM_RIGHTS
+           && cmsg->cmsg_len   >= CMSG_LEN (sizeof (int)))
+         fd = *(int *)CMSG_DATA (cmsg);
++#endif
+     }
+ 
+   free (buf);
