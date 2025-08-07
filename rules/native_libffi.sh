@@ -6,7 +6,7 @@ build_native_libffi() {
     local PKG_URL="https://gcc.gnu.org/pub/libffi/${PKG}-${PKG_VERSION}.${PKG_EXT}"
     local PKG_DESC="ffi"
     local PKG_DEPS=""
-    local PKG_PATH=""
+    local PKG_PATCH="patches/libffi-3.2-irix.diff"
     if ! test -e native_libffi.installed; then
         download ${PKG_URL}
         tar xf ${PKG}-${PKG_VERSION}.${PKG_EXT}
