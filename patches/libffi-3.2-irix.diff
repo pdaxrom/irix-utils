@@ -10,3 +10,15 @@ diff -Nur libffi-3.2/configure.ac libffi-3.2-irix/configure.ac
  	TARGET=MIPS; TARGETDIR=mips
  	;;
    mips*-*linux* | mips*-*-openbsd*)
+diff -Nur libffi-3.2/src/aarch64/ffi.c libffi-3.2-irix/src/aarch64/ffi.c
+--- libffi-3.2/src/aarch64/ffi.c	2014-11-08 16:47:24.000000000 +0400
++++ libffi-3.2-irix/src/aarch64/ffi.c	2025-08-07 16:34:38.151632557 +0400
+@@ -782,7 +782,7 @@
+           }
+     }
+ 
+-  cif->aarch64_nfixedargs = 0;
++  cif->aarch64_flags = 0;
+ 
+   return FFI_OK;
+ }
