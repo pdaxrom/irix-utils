@@ -6,5 +6,5 @@ A working cross compiler is required [https://github.com/pdaxrom/irix-gcc](https
 
 Ubuntu/Debian build dependencies:
 
-apt install build-essential texinfo autoconf2.69 wget mc libtool autopoint xz-utils git pkg-config python3
+apt install build-essential texinfo autoconf2.69 wget mc libtool autopoint xz-utils git pkg-config python3 gperf
 
