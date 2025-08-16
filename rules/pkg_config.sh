@@ -1,9 +1,9 @@
 build_pkg_config() {
 if ! test -e pkg-config.installed; then
-    download https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz
-    tar xf pkg-config-0.29.2.tar.gz
+#    download https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz
+#    tar xf pkg-config-0.29.2.tar.gz
     pushd pkg-config-0.29.2
-    patch -p1 < ${TOPDIR}/patches/pkg-config-0.29.2-irix.diff
+#    patch -p1 < ${TOPDIR}/patches/pkg-config-0.29.2-irix.diff
     mkdir -p build
     cd build
 

@@ -1,0 +1,44 @@
+diff -Nur glew-2.2.0/config/Makefile.irix-gcc glew-2.2.0-irix/config/Makefile.irix-gcc
+--- glew-2.2.0/config/Makefile.irix-gcc	1970-01-01 04:00:00.000000000 +0400
++++ glew-2.2.0-irix/config/Makefile.irix-gcc	2025-08-15 08:58:10.211273322 +0400
+@@ -0,0 +1,26 @@
++NAME = $(GLEW_NAME)
++CC = cc
++LD = ld
++ABI =
++CC += $(ABI)
++LD += $(ABI)
++LDFLAGS.EXTRA = -Wl,--allow-shlib-undefined -Wl,-rpath,$(LIBDIR)
++LDFLAGS.GL = -lGL -lXext -lX11
++LDFLAGS.STATIC = -Wl,-Bstatic
++LDFLAGS.DYNAMIC = -Wl,-Bdynamic
++NAME = GLEW
++WARN += -Wall -W
++WARN += -Wshadow
++#WARN += -pedantic
++POPT = -O2
++CFLAGS.EXTRA += -fPIC
++CFLAGS.EXTRA += -Wcast-qual
++CFLAGS.EXTRA += -ansi
++#CFLAGS.EXTRA += -pedantic
++CFLAGS.EXTRA += -fno-stack-protector
++BIN.SUFFIX =
++LIB.SONAME = lib$(NAME).so.$(SO_MAJOR)
++LIB.DEVLNK = lib$(NAME).so
++LIB.SHARED = lib$(NAME).so.$(SO_VERSION)
++LIB.STATIC = lib$(NAME).a
++LDFLAGS.SO = -shared -Wl,-soname=$(LIB.SONAME)
+diff -Nur glew-2.2.0/src/glew.c glew-2.2.0-irix/src/glew.c
+--- glew-2.2.0/src/glew.c	2020-03-15 15:53:59.000000000 +0400
++++ glew-2.2.0-irix/src/glew.c	2025-08-15 08:27:47.283615204 +0400
+@@ -79,6 +79,10 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ 
++#ifndef RTLD_LOCAL
++#define RTLD_LOCAL 0
++#endif
++
+ void* dlGetProcAddress (const GLubyte* name)
+ {
+   static void* h = NULL;

@@ -66,6 +66,12 @@ for f in ${TOPDIR}/rules/*.sh ; do
     source $f
 done
 
+build_native_gettext
+build_native_libffi
+build_native_glib2
+build_native_pkg_config
+build_native_file
+
 build_compat_irix
 build_zlib
 build_gzip
@@ -76,7 +82,6 @@ build_zstd
 build_lzo
 build_lzop
 build_expat
-build_native_gettext
 build_gettext
 build_tar
 build_ncurses
@@ -84,10 +89,7 @@ build_readline
 build_bash
 build_pkg_config
 build_pcre
-build_native_file
 build_file
-build_native_libffi
-build_native_glib2
 build_libffi
 build_pcre2
 build_glib2
@@ -134,6 +136,9 @@ build_libptytty
 build_rxvt_unicode
 
 build_turbo
+
+build_glew
+build_SDL2
 
 find $INST_PREFIX -type f -executable | while read f; do
     if file $f | grep -q ELF; then
