@@ -37,7 +37,9 @@ size_t wcrtomb(char *s, wchar_t wc, mbstate_t *ps)
 {
     (void)ps;
 
-    if (s == NULL) return 1;
+    if (s == NULL) {
+        return 1;
+    }
 
     if ((unsigned int)wc > 0x10FFFF) {
         errno = EILSEQ;
@@ -69,35 +71,55 @@ size_t mbrtowc(wchar_t *pwc, const char *s, size_t n, mbstate_t *ps)
 {
     (void)ps;
 
-    if (s == NULL) return 0;
-    if (n == 0) return (size_t)-2;
+    if (s == NULL) {
+        return 0;
+    }
+    if (n == 0) {
+        return (size_t)-2;
+    }
 
     unsigned char c = (unsigned char)s[0];
 
     if (c <= 0x7F) {
-        if (pwc) *pwc = c;
+        if (pwc) {
+            *pwc = c;
+        }
         return (c == '\0') ? 0 : 1;
     } else if ((c & 0xE0) == 0xC0) {
-        if (n < 2) return (size_t)-2;
-        if ((s[1] & 0xC0) != 0x80) goto ilseq;
-        if (pwc) *pwc = ((c & 0x1F) << 6) | (s[1] & 0x3F);
+        if (n < 2) {
+            return (size_t)-2;
+        }
+        if ((s[1] & 0xC0) != 0x80) {
+            goto ilseq;
+        }
+        if (pwc) {
+            *pwc = ((c & 0x1F) << 6) | (s[1] & 0x3F);
+        }
         return 2;
     } else if ((c & 0xF0) == 0xE0) {
-        if (n < 3) return (size_t)-2;
-        if ((s[1] & 0xC0) != 0x80 || (s[2] & 0xC0) != 0x80) goto ilseq;
+        if (n < 3) {
+            return (size_t)-2;
+        }
+        if ((s[1] & 0xC0) != 0x80 || (s[2] & 0xC0) != 0x80) {
+            goto ilseq;
+        }
         if (pwc) *pwc = ((c & 0x0F) << 12) |
-                         ((s[1] & 0x3F) << 6) |
-                         (s[2] & 0x3F);
+                            ((s[1] & 0x3F) << 6) |
+                            (s[2] & 0x3F);
         return 3;
     } else if ((c & 0xF8) == 0xF0) {
-        if (n < 4) return (size_t)-2;
+        if (n < 4) {
+            return (size_t)-2;
+        }
         if ((s[1] & 0xC0) != 0x80 ||
-            (s[2] & 0xC0) != 0x80 ||
-            (s[3] & 0xC0) != 0x80) goto ilseq;
+                (s[2] & 0xC0) != 0x80 ||
+                (s[3] & 0xC0) != 0x80) {
+            goto ilseq;
+        }
         if (pwc) *pwc = ((c & 0x07) << 18) |
-                         ((s[1] & 0x3F) << 12) |
-                         ((s[2] & 0x3F) << 6) |
-                         (s[3] & 0x3F);
+                            ((s[1] & 0x3F) << 12) |
+                            ((s[2] & 0x3F) << 6) |
+                            (s[3] & 0x3F);
         return 4;
     } else {
 ilseq:
@@ -122,12 +144,16 @@ size_t mbsrtowcs(wchar_t *dst, const char **src, size_t len, mbstate_t *ps)
             return (size_t)-2; /* incomplete sequence */
         }
         if (wc == 0) {
-            if (dst) dst[count] = L'\0';
+            if (dst) {
+                dst[count] = L'\0';
+            }
             *src = NULL;
             return count;
         }
 
-        if (dst) dst[count] = wc;
+        if (dst) {
+            dst[count] = wc;
+        }
         s += bytes;
         count++;
     }
@@ -150,7 +176,9 @@ size_t wcsrtombs(char *dst, const wchar_t **src, size_t len, mbstate_t *ps)
         }
 
         if (*s == L'\0') {
-            if (dst) dst[count] = '\0';
+            if (dst) {
+                dst[count] = '\0';
+            }
             *src = NULL;
             return count;
         }
@@ -475,17 +503,23 @@ int utf8_validate(const char *s)
             s++;
         } else if ((c & 0xE0) == 0xC0) {
             /* 2-byte */
-            if ((s[1] & 0xC0) != 0x80) return 0;
+            if ((s[1] & 0xC0) != 0x80) {
+                return 0;
+            }
             s += 2;
         } else if ((c & 0xF0) == 0xE0) {
             /* 3-byte */
-            if ((s[1] & 0xC0) != 0x80 || (s[2] & 0xC0) != 0x80) return 0;
+            if ((s[1] & 0xC0) != 0x80 || (s[2] & 0xC0) != 0x80) {
+                return 0;
+            }
             s += 3;
         } else if ((c & 0xF8) == 0xF0) {
             /* 4-byte */
             if ((s[1] & 0xC0) != 0x80 ||
-                (s[2] & 0xC0) != 0x80 ||
-                (s[3] & 0xC0) != 0x80) return 0;
+                    (s[2] & 0xC0) != 0x80 ||
+                    (s[3] & 0xC0) != 0x80) {
+                return 0;
+            }
             s += 4;
         } else {
             /* Invalid byte */

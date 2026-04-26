@@ -137,8 +137,8 @@ build_rxvt_unicode
 
 build_turbo
 
-build_glew
-build_SDL2
+#build_glew
+#build_SDL2
 
 find $INST_PREFIX -type f -executable | while read f; do
     if file $f | grep -q ELF; then

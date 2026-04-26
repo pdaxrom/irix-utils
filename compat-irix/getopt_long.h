@@ -28,10 +28,10 @@ extern int optreset;
 int compat_getopt(int nargc, char * const *nargv, const char *options);
 
 int getopt_long(int nargc, char * const *nargv, const char *options,
-    const struct option *long_options, int *idx);
+                const struct option *long_options, int *idx);
 
 int getopt_long_only(int nargc, char * const *nargv, const char *options,
-    const struct option *long_options, int *idx);
+                     const struct option *long_options, int *idx);
 
 #ifdef __cplusplus
 }

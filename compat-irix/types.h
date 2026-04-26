@@ -2,7 +2,6 @@
 #define COMPAT_TYPES_H
 
 #include_next <sys/types.h>
-
-typedef int socklen_t;
+#include "compat_types.h"
 
 #endif

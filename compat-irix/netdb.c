@@ -2,31 +2,25 @@
 
 #ifndef COMPAT_IRIX_65
 
-//#include "netdb.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <arpa/inet.h>
 #include <sys/types.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
-
-/* Allocate and copy string */
-static char *strdup_safe(const char *s)
-{
-    if (!s) return NULL;
-    char *copy = malloc(strlen(s) + 1);
-    if (copy) strcpy(copy, s);
-    return copy;
-}
 
 void freeaddrinfo(struct addrinfo *res)
 {
     while (res) {
         struct addrinfo *next = res->ai_next;
-        if (res->ai_addr) free(res->ai_addr);
-        if (res->ai_canonname) free(res->ai_canonname);
+        if (res->ai_addr) {
+            free(res->ai_addr);
+        }
+        if (res->ai_canonname) {
+            free(res->ai_canonname);
+        }
         free(res);
         res = next;
     }
@@ -35,15 +29,28 @@ void freeaddrinfo(struct addrinfo *res)
 const char *gai_strerror(int errcode)
 {
     switch (errcode) {
-        case 0: return "Success";
-        case EAI_FAIL: return "Non-recoverable failure";
-        case EAI_MEMORY: return "Memory allocation failure";
-        case EAI_NONAME: return "Name or service not known";
-        case EAI_FAMILY: return "Address family not supported";
-        case EAI_SERVICE: return "Service not supported";
-        case EAI_OVERFLOW: return "Buffer overflow";
-        case EAI_SYSTEM: return "System error";
-        default: return "Unknown error";
+    case 0:
+        return "Success";
+    case EAI_FAIL:
+        return "Non-recoverable failure";
+    case EAI_MEMORY:
+        return "Memory allocation failure";
+    case EAI_NONAME:
+        return "Name or service not known";
+    case EAI_FAMILY:
+        return "Address family not supported";
+    case EAI_SERVICE:
+        return "Service not supported";
+    case EAI_OVERFLOW:
+        return "Buffer overflow";
+    case EAI_SYSTEM:
+        return "System error";
+    case EAI_NODATA:
+        return "No address associated with hostname";
+    case EAI_ADDRFAMILY:
+        return "Address family for hostname not supported";
+    default:
+        return "Unknown error";
     }
 }
 
@@ -56,15 +63,20 @@ int getaddrinfo(const char *node, const char *service,
     struct addrinfo *ai = NULL;
     int port = 0;
 
-    if (!node && !service) return EAI_NONAME;
-    if (hints && hints->ai_family != AF_INET && hints->ai_family != AF_UNSPEC)
+    if (!node && !service) {
+        return EAI_NONAME;
+    }
+    if (hints && hints->ai_family != AF_INET && hints->ai_family != AF_UNSPEC) {
         return EAI_FAMILY;
+    }
 
     if (service) {
         port = atoi(service);
         if (port == 0) {
             se = getservbyname(service, NULL);
-            if (!se) return EAI_SERVICE;
+            if (!se) {
+                return EAI_SERVICE;
+            }
             port = ntohs(se->s_port);
         }
     }
@@ -101,8 +113,8 @@ int getaddrinfo(const char *node, const char *service,
 
         if (!node) {
             sa->sin_addr.s_addr = (ai->ai_flags & AI_PASSIVE)
-                                ? htonl(INADDR_ANY)
-                                : htonl(INADDR_LOOPBACK);
+                                  ? htonl(INADDR_ANY)
+                                  : htonl(INADDR_LOOPBACK);
         } else if (ai->ai_flags & AI_NUMERICHOST) {
             if (inet_aton(node, &sa->sin_addr) == 0) {
                 freeaddrinfo(ai);
@@ -119,7 +131,7 @@ int getaddrinfo(const char *node, const char *service,
             memcpy(&sa->sin_addr, he->h_addr, sizeof(struct in_addr));
 
             if ((ai->ai_flags & AI_CANONNAME) && !*res) {
-                ai->ai_canonname = strdup_safe(he->h_name);
+                ai->ai_canonname = strdup(he->h_name);
                 if (!ai->ai_canonname) {
                     freeaddrinfo(ai);
                     freeaddrinfo(*res);
@@ -140,13 +152,15 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen,
 {
     const struct sockaddr_in *sin = (const struct sockaddr_in *)sa;
 
-    if (sa->sa_family != AF_INET || salen < sizeof(struct sockaddr_in))
+    if (sa->sa_family != AF_INET || salen < sizeof(struct sockaddr_in)) {
         return EAI_FAMILY;
+    }
 
     if (host && hostlen > 0) {
         const char *ip = inet_ntoa(sin->sin_addr);
-        if (!ip || strlen(ip) >= hostlen)
+        if (!ip || strlen(ip) >= hostlen) {
             return EAI_OVERFLOW;
+        }
 
         if (flags & NI_NUMERICHOST) {
             strncpy(host, ip, hostlen);
@@ -154,8 +168,9 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen,
             struct hostent *he = gethostbyaddr((const char *)&sin->sin_addr,
                                                sizeof(sin->sin_addr),
                                                AF_INET);
-            if (!he || strlen(he->h_name) >= hostlen)
+            if (!he || strlen(he->h_name) >= hostlen) {
                 return EAI_FAIL;
+            }
             strncpy(host, he->h_name, hostlen);
         }
     }
@@ -163,12 +178,14 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen,
     if (serv && servlen > 0) {
         int port = ntohs(sin->sin_port);
         if (flags & NI_NUMERICSERV) {
-            if (snprintf(serv, servlen, "%d", port) >= servlen)
+            if (snprintf(serv, servlen, "%d", port) >= servlen) {
                 return EAI_OVERFLOW;
+            }
         } else {
             struct servent *se = getservbyport(htons(port), NULL);
-            if (!se || strlen(se->s_name) >= servlen)
+            if (!se || strlen(se->s_name) >= servlen) {
                 return EAI_FAIL;
+            }
             strncpy(serv, se->s_name, servlen);
         }
     }

@@ -4,14 +4,14 @@
 
 /*
  * setenv - set environment variable
- * 
+ *
  * This is a implementation for systems that don't have it (like IRIX 5.3)
- * 
+ *
  * Parameters:
  *   name - variable name
  *   value - value to set
  *   overwrite - if 0, don't overwrite existing variable
- * 
+ *
  * Returns:
  *   0 on success, -1 on error with errno set
  */
@@ -60,8 +60,9 @@ int compat_setenv(const char *name, const char *value, int overwrite)
 
 int compat_unsetenv(const char *name)
 {
-    if (!name || strchr(name, '=') != NULL || *name == '\0')
+    if (!name || strchr(name, '=') != NULL || *name == '\0') {
         return -1;
+    }
 
     size_t len = strlen(name);
     extern char **environ;

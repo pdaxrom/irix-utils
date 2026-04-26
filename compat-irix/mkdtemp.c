@@ -35,12 +35,14 @@ char *mkdtemp(char *path)
         }
 
         // Try to make the directory
-        if (mkdir(path, 0700) == 0)
+        if (mkdir(path, 0700) == 0) {
             return path;
+        }
 
         // If mkdir failed for a reason other than EEXIST, abort
-        if (errno != EEXIST)
+        if (errno != EEXIST) {
             break;
+        }
     }
 
     // Failed after many attempts

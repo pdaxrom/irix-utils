@@ -2,6 +2,7 @@
 #define COMPAT_SOCKET_H
 
 #include <compat_config.h>
+#include <sys/types.h>
 #include_next <sys/socket.h>
 
 #ifndef SHUT_RD

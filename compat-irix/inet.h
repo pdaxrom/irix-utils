@@ -1,9 +1,9 @@
 #ifndef COMPAT_INET_H
 #define COMPAT_INET_H
 
-#include_next <arpa/inet.h>
-
 #include <compat_config.h>
+#include "compat_types.h"
+#include_next <arpa/inet.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,9 +15,7 @@ extern "C" {
 
 int inet_pton(int af, const char *src, void *dst);
 
-#ifndef COMPAT_IRIX_65
 const char *inet_ntop(int af, const void *src, char *dst, socklen_t size);
-#endif
 
 #ifdef __cplusplus
 }
